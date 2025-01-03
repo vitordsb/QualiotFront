@@ -16,7 +16,6 @@ const router = createRouter({
     {
       path: "/home",
       component: () => import("../views/HomeView.vue"),
-      meta: { requiresAuth: true },
       children: [
         {
           path: "/home",
@@ -43,15 +42,5 @@ const router = createRouter({
   ],
 });
 
-// Verifica a autenticação antes de acessar rotas protegidas
-router.beforeEach((to, from, next) => {
-  // Verifica se a rota requer autenticação e se o usuário não está autenticado
-  const isAuthenticated = localStorage.getItem("isAuthenticated") === "true"; // Checa se o usuário está autenticado
-  if (to.meta.requiresAuth && !isAuthenticated) {
-    next("/"); // Redireciona para a página de login se não estiver autenticado
-  } else {
-    next(); // Caso contrário, permite o acesso à rota
-  }
-});
 
 export default router;
