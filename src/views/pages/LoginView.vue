@@ -67,8 +67,12 @@ const handleLogin = async () => {
       return;
     }
     const data = await response.json();
-    if (data.token) {
-      localStorage.getItem('authToken', data.token);
+    if (!localStorage.getItem("authToken") == data.token) {
+      localStorage.setItem('authToken', data.token)
+      console.log(localStorage)
+    } else {
+      localStorage.getItem('authToken')
+      console.log(localStorage)
     }
     message.value = 'Login realizado com sucesso!';
     messageType.value = 'success';
