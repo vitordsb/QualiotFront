@@ -82,6 +82,11 @@ const handleRegister = async () => {
       messageType.value = 'error';
       return;
     }
+
+    const data = await response.json();
+    if (data.token) {
+      localStorage.setItem('authToken', data.token);
+    }
     message.value = 'Registro realizado com sucesso! Redirecionando para o login...';
     messageType.value = 'success';
     setTimeout(() => {

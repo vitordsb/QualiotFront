@@ -68,16 +68,22 @@ const handleLogin = async () => {
     }
     const data = await response.json();
     if (data.token) {
-      localStorage.setItem('authToken', data.token);
+      localStorage.getItem('authToken', data.token);
     }
     message.value = 'Login realizado com sucesso!';
-    messageType.value = 'success'; 
+    messageType.value = 'success';
+
     setTimeout(() => {
       router.push('/home');
-    }, 2000);
+      message.value = '';
+    }, 1200);
+
   } catch (error) {
     message.value = 'Erro ao conectar com o servidor. Tente novamente mais tarde.';
     messageType.value = 'error';
+    setTimeout(() => {
+      message.value = '';
+    }, 2000);
   }
 };
 </script>
