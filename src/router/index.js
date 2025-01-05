@@ -48,9 +48,6 @@ router.beforeEach((to, from, next) => {
   if (to.meta.requiresAuth && !isAuthenticated) {
     next("/");
   }
-  else if(){
-
-  }
   next();
 });
 
