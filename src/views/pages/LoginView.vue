@@ -41,6 +41,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import axios from 'axios';
 
 const router = useRouter();
 const email = ref('');
@@ -66,14 +67,12 @@ const handleLogin = async () => {
       messageType.value = 'error';
       return;
     }
+    
     const data = await response.json();
-    if (!localStorage.getItem("authToken") == data.token) {
-      localStorage.setItem('authToken', data.token)
-      console.log(localStorage)
-    } else {
-      localStorage.getItem('authToken')
-      console.log(localStorage)
-    }
+    const token = data.userLogin.token;
+    
+    localStorage.setItem('token', token);
+
     message.value = 'Login realizado com sucesso!';
     messageType.value = 'success';
 

@@ -2,11 +2,11 @@
   <div class="produto-cadastro">
     <div class="abas">
       <button :class="{ active: abaAtiva === 'cadastrar' }" @click="abaAtiva = 'cadastrar'">Cadastrar Produto</button>
-      <button :class="{ active: abaAtiva === 'listar' }" @click="abaAtiva = 'listar'">Listar Produtos</button>
+      <button :class="{ active: abaAtiva === 'listar' }" @click="listarProdutos">Listar Produtos</button>
     </div>
 
-    <!-- Contêiner fixo para as transições -->
     <div class="transicao-container">
+      <!-- Cadastro de Produto -->
       <Transition name="fade-horizontal">
         <div v-if="abaAtiva === 'cadastrar'" class="form-container">
           <h1>Cadastro de Produto</h1>
@@ -26,15 +26,15 @@
         </div>
       </Transition>
 
+      <!-- Lista de Produtos -->
       <Transition name="fade-horizontal">
         <div v-if="abaAtiva === 'listar'" class="list-container">
           <h1>Produtos Cadastrados</h1>
           <div v-if="produtos.length" class="produtos-list">
             <div v-for="(prod, index) in produtos" :key="index" class="produto-card">
               <div class="produto-detalhes">
-                <h2>{{ capitalizeFirstLetter(prod.nome) }}</h2>
-                <p>{{ prod.descricao }}</p>
-                <p><strong>Nota:</strong> {{ getNotaMedia(prod.nome) }}</p>
+                <h2>{{ capitalizeFirstLetter(prod.name) }}</h2>
+                <p>{{ prod.description }}</p>
                 <button @click="confirmarRemocao(index)" class="btn-remover">Remover</button>
               </div>
             </div>
@@ -49,69 +49,118 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
 
 const abaAtiva = ref('cadastrar');
 const produto = ref({ nome: '', descricao: '' });
 const produtos = ref([]);
 
-// Carregar produtos do localStorage ao montar o componente
-onMounted(() => {
-  const produtosSalvos = localStorage.getItem('produtos');
-  if (produtosSalvos) {
-    produtos.value = JSON.parse(produtosSalvos);
-  }
-});
+const backendURL = 'https://qualiotbackend.onrender.com/products';
 
-const cadastrarProduto = () => {
-  if (produto.value.nome && produto.value.descricao) {
-    // Verifica se o produto já existe na lista
-    const produtoExiste = produtos.value.some((p) => p.nome.toLowerCase() === produto.value.nome.toLowerCase());
-    
-    if (produtoExiste) {
-      alert('Produto já cadastrado!');
-      return;
+const listarProdutos = async () => {
+  abaAtiva.value = 'listar';
+  try {
+    const token = localStorage.getItem('token');
+
+    const response = await fetch(backendURL, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Erro ao buscar produtos');
     }
 
-    produtos.value.push({ ...produto.value });
-    localStorage.setItem('produtos', JSON.stringify(produtos.value));
-    
-    alert('Produto cadastrado com sucesso!');
-    produto.value = { nome: '', descricao: '' };
-  } else {
-    alert('Por favor, preencha todos os campos obrigatórios.');
-  } 
+    const data = await response.json();
+    console.log('Dados recebidos:', data);
+    produtos.value = data.product; 
+  } catch (error) {
+    console.error('Erro ao buscar produtos:', error);
+    alert('Não foi possível carregar os produtos. Faça login novamente.');
+  }
 };
 
-const getNotaMedia = (nomeProduto) => {
-  const nota = localStorage.getItem(`nota_${nomeProduto}`);
-  return nota ? JSON.parse(nota) : 'Sem avaliação';
+const cadastrarProduto = async () => {
+  if (produto.value.nome && produto.value.descricao) {
+    try {
+      const token = localStorage.getItem('token');
+      const novoProduto = {
+        name: produto.value.nome,
+        description: produto.value.descricao,
+      };
+
+      const response = await fetch(backendURL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(novoProduto),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao cadastrar produto');
+      }
+
+      const data = await response.json();
+      produtos.value.push(data); 
+      alert('Produto cadastrado com sucesso!');
+      produto.value = { nome: '', descricao: '' };
+    } catch (error) {
+      console.error('Erro ao cadastrar produto:', error);
+      alert('Erro ao cadastrar o produto. Tente novamente.');
+    }
+  } else {
+    alert('Por favor, preencha todos os campos obrigatórios.');
+  }
+};
+
+const removerProduto = async (index) => {
+  const produtoRemovido = produtos.value[index];
+  if (!produtoRemovido) return;
+
+  try {
+    const token = localStorage.getItem('token'); 
+    const response = await fetch(`${backendURL}/${produtoRemovido._id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Erro ao remover produto');
+    }
+
+    produtos.value.splice(index, 1); 
+    alert('Produto removido com sucesso!');
+  } catch (error) {
+    console.error('Erro ao remover produto:', error);
+    alert('Erro ao remover o produto. Tente novamente.');
+  }
+};
+
+const confirmarRemocao = (index) => {
+  if (confirm('Tem certeza que deseja remover este produto?')) {
+    removerProduto(index);
+  }
 };
 
 const capitalizeFirstLetter = (string) => {
   return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
 };
-
-// Função para confirmar a remoção do produto
-const confirmarRemocao = (index) => {
-  if (confirm("Tem certeza que deseja remover este produto?")) {
-    removerProduto(index);
-  }
-};
-
-// Função para remover um produto da lista e do localStorage
-const removerProduto = (index) => {
-  produtos.value.splice(index, 1);
-  localStorage.setItem('produtos', JSON.stringify(produtos.value));
-};
 </script>
 
 <style scoped>
+
 .produto-cadastro {
   height: auto;
   border-radius: 10px;
   max-width: 800px;
-  margin: 120px auto; /* Centralizado no desktop */
+  margin: 120px auto;
   padding: 20px;
   background: #fff;
 }
@@ -120,7 +169,7 @@ const removerProduto = (index) => {
   display: flex;
   justify-content: center;
   margin-bottom: 20px;
-  gap: 10px; /* Espaçamento entre botões */
+  gap: 10px;
 }
 
 .abas button {
@@ -142,7 +191,7 @@ const removerProduto = (index) => {
 
 .transicao-container {
   position: relative;
-  height: 100%; /* Mantém altura dinâmica */
+  height: 100%;
 }
 
 .form-container,
@@ -157,7 +206,6 @@ const removerProduto = (index) => {
   box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-/* Formulário */
 .form-group {
   margin-bottom: 20px;
 }
@@ -194,7 +242,6 @@ const removerProduto = (index) => {
   background-color: #276ba1;
 }
 
-/* Lista de produtos */
 .produtos-list {
   display: flex;
   flex-direction: column;
@@ -234,102 +281,4 @@ const removerProduto = (index) => {
 .btn-remover:hover {
   background-color: #d42f2f;
 }
-
-/* Responsividade */
-@media (max-width: 768px) {
-  .produto-cadastro {
-    max-width: 100%; /* Ocupa toda a largura disponível */
-    margin: 60px auto; /* Reduzido para centralizar */
-    padding: 15px;
-  }
-
-  .abas {
-    flex-direction: column; /* Coloca os botões em coluna */
-    align-items: center;
-    gap: 10px;
-  }
-
-  .abas button {
-    width: 100%; /* Botões ocupam toda a largura */
-    padding: 12px;
-    font-size: 16px;
-  }
-
-  .form-container,
-  .list-container {
-    padding: 20px;
-  }
-
-  .form-group label {
-    font-size: 16px;
-  }
-
-  .form-group input,
-  .form-group textarea {
-    padding: 10px;
-    font-size: 14px;
-  }
-
-  .btn-cadastrar {
-    font-size: 16px;
-    padding: 10px;
-  }
-
-  .produtos-list {
-    gap: 15px;
-  }
-
-  .produto-card {
-    padding: 15px;
-  }
-
-  .produto-detalhes h2 {
-    font-size: 18px;
-  }
-
-  .produto-detalhes p {
-    font-size: 14px;
-  }
-
-  .btn-remover {
-    font-size: 14px;
-    padding: 8px 10px;
-  }
-}
-
-@media (max-width: 480px) {
-  .produto-cadastro {
-    margin: 30px auto; /* Reduzido ainda mais para telas pequenas */
-    padding: 10px;
-  }
-
-  .form-group label {
-    font-size: 14px;
-  }
-
-  .form-group input,
-  .form-group textarea {
-    font-size: 12px;
-    padding: 8px;
-  }
-
-  .btn-cadastrar {
-    font-size: 14px;
-    padding: 8px;
-  }
-
-  .produto-detalhes h2 {
-    font-size: 16px;
-  }
-
-  .produto-detalhes p {
-    font-size: 12px;
-  }
-
-  .btn-remover {
-    font-size: 12px;
-    padding: 6px 8px;
-  }
-}
-
 </style>
