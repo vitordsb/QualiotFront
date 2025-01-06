@@ -8,10 +8,10 @@
           <span>Olá {{ captalizeFistLetter(userName) }}</span>
         </button>
         <div class="dropdown-content" v-if="dropdownVisible">
-          <a href="#">My Account</a>
           <a class="logout" @click="logout">Logout</a>
         </div>
       </div>
+
 
       <!-- Links centralizados -->
       <nav class="links" :class="{ active: menuVisible }">
@@ -24,9 +24,7 @@
       <!-- Logo à direita -->
       <div class="logo">
         <img src="/src/assets/logo/qualiot.png" alt="Logo">
-        <h1>Qualiot</h1>
       </div>
-
       <!-- Botão Hamburger -->
       <button class="hamburger" @click="toggleMenu">
         <span></span>
@@ -46,8 +44,7 @@ const dropdownVisible = ref(false);
 const menuVisible = ref(false);
 const isLogin = ref(false);
 const isRegister = ref(false);
-const userData = JSON.parse(localStorage.getItem('userName') || '{}');
-const userName = ref(userData.name || 'Visitante');
+const userName = localStorage.getItem('name')
 
 function captalizeFistLetter(string) {
   return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
@@ -59,7 +56,6 @@ watch(route, (newRoute) => {
 });
 
 function logout() {
-  localStorage.removeItem('userName');
   window.location.replace('/');
 }
 
@@ -73,17 +69,17 @@ function toggleMenu() {
 </script>
 
 <style scoped>
-/* Header principal */
+
 .header {
-  background-color: #bae2fc;
+  background-color: #F0F2F5;
   padding: 10px 20px;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
   position: relative;
 }
 
-/* Container geral */
 .container {
   display: flex;
   align-items: center;
@@ -92,7 +88,6 @@ function toggleMenu() {
   position: relative;
 }
 
-/* Links de navegação */
 .links {
   display: flex;
   justify-content: center;
@@ -111,19 +106,20 @@ function toggleMenu() {
   color: #3389CE;
 }
 
-/* Logo à direita */
 .logo {
   display: flex;
   align-items: center;
-  gap: 10px;  
+  gap: 10px;
   font-size: 12px;
+  @media (max-width: 700px){
+      display: none;
+  }
 }
 .logo img {
   height: 50px;
   width: auto;
 }
 
-/* Dropdown de usuário */
 .dropdown {
   position: relative;
 }

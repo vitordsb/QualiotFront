@@ -41,7 +41,6 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
 
 const router = useRouter();
 const email = ref('');
@@ -67,11 +66,13 @@ const handleLogin = async () => {
       messageType.value = 'error';
       return;
     }
-    
+
     const data = await response.json();
     const token = data.userLogin.token;
-    
+    const name = data.userLogin.name
+
     localStorage.setItem('token', token);
+    localStorage.setItem('name', name)
 
     message.value = 'Login realizado com sucesso!';
     messageType.value = 'success';
@@ -79,10 +80,10 @@ const handleLogin = async () => {
     setTimeout(() => {
       router.push('/home');
       message.value = '';
-    }, 1200);
+    }, 1000);
 
   } catch (error) {
-    message.value = 'Erro ao conectar com o servidor. Tente novamente mais tarde.';
+    message.value = 'Erro ao conectar com o servidor.';
     messageType.value = 'error';
     setTimeout(() => {
       message.value = '';
@@ -93,117 +94,154 @@ const handleLogin = async () => {
 
 
 <style scoped>
+
 .login-page {
   display: flex;
+  gap: 10px;
   align-items: center;
   justify-content: center;
   height: 100vh;
-  background-color: #c2eeff;
-  @media (max-width: 768px) {
-    flex-direction: column;
-    padding: 20px;
-    img {
+  background: linear-gradient(105deg, #fff, #00c6ff);
+  @media (max-width: 700px){
+      padding: 30px;
+      height: auto;
+      flex-direction: column;
+  }
+}
+
+img {
+  width: 350px;
+  border-radius: 50%;
+  @media (max-width: 700px){
       width: 250px;
-    }
   }
 }
 
 .login-container {
   width: 100%;
-  max-width: 600px;
-  padding: 40px;
+  max-width: 500px;
+  padding: 60px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  height: 500px;
-  background-color: #fff;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background: #ffffff;
+  border-radius: 15px;
   text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.login-container:hover {
+  transform: scale(1.01);
 }
 
 h2 {
-  margin-bottom: 25px;
+  margin-bottom: 20px;
   color: #333;
-  font-size: 40px;
+  font-size: 36px;
+  font-family: 'Roboto', sans-serif;
+  font-weight: bold;
 }
 
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 25px;
   text-align: left;
 }
 
 label {
   display: block;
-  margin-bottom: 5px;
-  font-size: 20px;
-  color: #333;
+  margin-bottom: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #555;
 }
 
 input[type="email"],
 input[type="password"] {
   width: 100%;
-  padding: 10px;
-  font-size: 20px;
+  padding: 12px;
+  font-size: 18px;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 8px;
   box-sizing: border-box;
+  transition: border 0.3s ease, box-shadow 0.3s ease;
+}
+
+input[type="email"]:focus,
+input[type="password"]:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+  outline: none;
 }
 
 .login-button {
-  margin-bottom: 30px ;
-  display: flex;
-  justify-content: center;
-  width: 50%;
-  margin-left: auto;
-  margin-right: auto;
-  padding: 10px;
-  background-color: #007bff;
+  margin-top: 20px;
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #00c6ff, #0072ff);
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   color: #fff;
-  font-size: 18px;
-  transition: calc(.3s);
+  font-size: 20px;
+  font-weight: bold;
+  transition: background 0.3s ease, transform 0.2s ease;
   cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .login-button:hover {
-  background-color: #0056b3;
+  background: linear-gradient(135deg, #0072ff, #0056b3);
+  transform: translateY(-3px);
 }
+
+.register-link {
+  margin-top: 15px;
+  font-size: 16px;
+  color: #555;
+}
+
+.register-link a {
+  color: #007bff;
+  font-weight: bold;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.register-link a:hover {
+  color: #0056b3;
+}
+
 .message {
-  margin-top: 10px;
+  margin-top: 15px;
   font-size: 16px;
   text-align: center;
 }
 
 .message.success {
-  color: green; /* Estilo para mensagens de sucesso */
+  color: #28a745;
 }
 
 .message.error {
-  color: red; /* Estilo para mensagens de erro */
-}
-.fade-horizontal-enter-active, .fade-horizontal-leave-active {
-  transition: opacity 0.5s ease, transform 0.5s ease;
+  color: #dc3545;
 }
 
-.fade-horizontal-enter-from {
-  opacity: 0;
-  transform: translateX(-20px);
-}
+@media (max-width: 768px) {
+  .login-container {
+    padding: 30px;
+  }
 
-.fade-horizontal-enter-to {
-  opacity: 1;
-  transform: translateX(0);
-}
+  h2 {
+    font-size: 28px;
+  }
 
-.fade-horizontal-leave-from {
-  opacity: 1;
-  transform: translateX(0);
-}
+  input[type="email"],
+  input[type="password"] {
+    font-size: 16px;
+    padding: 10px;
+  }
 
-.fade-horizontal-leave-to {
-  opacity: 0;
-  transform: translateX(20px);
+  .login-button {
+    font-size: 18px;
+    padding: 10px;
+  }
 }
 </style>

@@ -16,6 +16,7 @@ const router = createRouter({
     {
       path: "/home",
       component: () => import("../views/HomeView.vue"),
+      meta: {requiresAuth: true},
       children: [
         {
           path: "/home",
@@ -40,6 +41,19 @@ const router = createRouter({
       ],
     },
   ],
+});
+
+router.beforeEach((to, from, next) => {
+  if (to.matched.some((record) => record.meta.requiresAuth)) {
+    const token = localStorage.getItem("token");
+    if (token) {
+      next();
+    } else {
+      next({ name: "login" });
+    }
+  } else {
+    next();
+  }
 });
 
 

@@ -76,7 +76,7 @@ const listarProdutos = async () => {
 
     const data = await response.json();
     console.log('Dados recebidos:', data);
-    produtos.value = data.product; 
+    produtos.value = data.product;
   } catch (error) {
     console.error('Erro ao buscar produtos:', error);
     alert('Não foi possível carregar os produtos. Faça login novamente.');
@@ -106,7 +106,7 @@ const cadastrarProduto = async () => {
       }
 
       const data = await response.json();
-      produtos.value.push(data); 
+      produtos.value.push(data);
       alert('Produto cadastrado com sucesso!');
       produto.value = { nome: '', descricao: '' };
     } catch (error) {
@@ -123,7 +123,7 @@ const removerProduto = async (index) => {
   if (!produtoRemovido) return;
 
   try {
-    const token = localStorage.getItem('token'); 
+    const token = localStorage.getItem('token');
     const response = await fetch(`${backendURL}/${produtoRemovido._id}`, {
       method: 'DELETE',
       headers: {
@@ -135,7 +135,7 @@ const removerProduto = async (index) => {
       throw new Error('Erro ao remover produto');
     }
 
-    produtos.value.splice(index, 1); 
+    produtos.value.splice(index, 1);
     alert('Produto removido com sucesso!');
   } catch (error) {
     console.error('Erro ao remover produto:', error);
@@ -157,12 +157,10 @@ const capitalizeFirstLetter = (string) => {
 <style scoped>
 
 .produto-cadastro {
-  height: auto;
   border-radius: 10px;
   max-width: 800px;
   margin: 120px auto;
   padding: 20px;
-  background: #fff;
 }
 
 .abas {
@@ -181,6 +179,9 @@ const capitalizeFirstLetter = (string) => {
   font-size: 18px;
   border-radius: 8px;
   transition: background-color 0.3s;
+  @media (max-width: 700px){
+      padding: 10px;
+  }
 }
 
 .abas button.active,
@@ -196,27 +197,32 @@ const capitalizeFirstLetter = (string) => {
 
 .form-container,
 .list-container {
+    background-color: #F0F2F5;
+    text-align: center;
   position: absolute;
   top: 0;
+  border-radius: 20px;
   left: 0;
+  box-shadow: 2px 4px 4px #ddd;
   width: 100%;
   padding: 30px;
-  background: white;
-  border-radius: 10px;
-  box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .form-group {
-  margin-bottom: 20px;
+    margin-top: 30px;
+    text-align: start;
+    margin-bottom: 20px;
 }
 
 .form-group label {
+
   font-weight: bold;
   font-size: 18px;
 }
 
 .form-group input,
 .form-group textarea {
+
   width: 100%;
   padding: 12px;
   font-size: 16px;
@@ -232,8 +238,10 @@ const capitalizeFirstLetter = (string) => {
   cursor: pointer;
   font-size: 18px;
   border-radius: 8px;
+  display: flex;
   font-weight: bold;
-  width: 100%;
+  margin-right: auto;
+  margin-left: auto;
   margin-top: 10px;
   transition: background-color 0.3s;
 }
@@ -243,9 +251,14 @@ const capitalizeFirstLetter = (string) => {
 }
 
 .produtos-list {
+text-align: start;
   display: flex;
+  margin: 20px;
   flex-direction: column;
   gap: 20px;
+  @media (max-width: 700px){
+      margin: 0px;
+  }
 }
 
 .produto-card {
@@ -253,6 +266,10 @@ const capitalizeFirstLetter = (string) => {
   background-color: #f9f9f9;
   border-radius: 8px;
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  @media (max-width: 700px){
+      padding: 10px;
+      margin-top: 30px;
+  }
 }
 
 .produto-detalhes h2 {

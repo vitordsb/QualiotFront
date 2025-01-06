@@ -99,115 +99,161 @@ const handleRegister = async () => {
 };
 
 </script>
+
 <style scoped>
 .register-page {
   display: flex;
   align-items: center;
   justify-content: center;
   height: 100vh;
-  background-color: #f2f2f2;
-  @media (max-width: 768px) {
-    padding: 20px;
-    flex-direction: column-reverse;
-    height: auto;
-    img {
-      width: 250px;
-    }
+  gap: 10px;
+  background: linear-gradient(135deg, #00c6ff, #fff);
+  padding: 30px;
+  @media (max-width: 700px){
+      padding: 30px;
+      height: auto;
+      flex-direction: column-reverse;
   }
+}
+
+img {
+  width: 450px;
+  border-radius: 50%;
 }
 
 .register-container {
   width: 100%;
-  max-width: 600px;
-  padding: 20px;
+  max-width: 550px;
+  padding: 50px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  height: 500px;
-  background-color: #fff;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background: #ffffff;
+  border-radius: 15px;
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
   text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.register-container:hover {
+  transform: scale(1.01);
 }
 
 h2 {
   margin-bottom: 20px;
   color: #333;
-  font-size: 40px;
+  font-size: 36px;
+  font-family: 'Roboto', sans-serif;
+  font-weight: bold;
 }
 
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 25px;
   text-align: left;
 }
 
 label {
   display: block;
-  margin-bottom: 5px;
-  font-size: 20px;
-  color: #333;
+  margin-bottom: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #555;
 }
 
 input[type="text"],
 input[type="email"],
 input[type="password"] {
   width: 100%;
-  padding: 10px;
-  font-size: 20px;
+  padding: 12px;
+  font-size: 18px;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 8px;
   box-sizing: border-box;
+  transition: border 0.3s ease, box-shadow 0.3s ease;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+  outline: none;
 }
 
 .register-button {
-  margin-bottom: 10px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-left: auto;
-  margin-right: auto;
-  padding: 10px;
-  background-color: #007bff;
+  margin-top: 20px;
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #00c6ff, #0072ff);
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   color: #fff;
-  font-size: 16px;
+  font-size: 20px;
+  font-weight: bold;
+  transition: background 0.3s ease, transform 0.2s ease;
   cursor: pointer;
-  transition: calc(.3s);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
+
 .register-button:hover {
-  background-color: #0056b3;
+  background: linear-gradient(135deg, #0072ff, #0056b3);
+  transform: translateY(-3px);
 }
-.fade-horizontal-enter-active, .fade-horizontal-leave-active {
-  transition: opacity 0.5s ease, transform 0.5s ease;
+
+.login-link {
+  margin-top: 15px;
+  font-size: 16px;
+  color: #555;
 }
-.fade-horizontal-enter-from {
-  opacity: 0;
-  transform: translateX(-20px);
+
+.login-link a {
+  color: #007bff;
+  font-weight: bold;
+  text-decoration: none;
+  transition: color 0.3s ease;
 }
-.fade-horizontal-enter-to {
-  opacity: 1;
-  transform: translateX(0);
+
+.login-link a:hover {
+  color: #0056b3;
 }
-.fade-horizontal-leave-from {
-  opacity: 1;
-  transform: translateX(0);
-}
-.fade-horizontal-leave-to {
-  opacity: 0;
-  transform: translateX(20px);
-}
+
 .message {
-  margin-top: 10px;
+  margin-top: 15px;
   font-size: 16px;
   text-align: center;
 }
 
 .message.success {
-  color: green; /* Mensagem de sucesso */
+  color: #28a745;
 }
 
 .message.error {
-  color: red; /* Mensagem de erro */
+  color: #dc3545;
+}
+
+@media (max-width: 768px) {
+  .register-container {
+    padding: 30px;
+  }
+
+  h2 {
+    font-size: 28px;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="password"] {
+    font-size: 16px;
+    padding: 10px;
+  }
+
+  .register-button {
+    font-size: 18px;
+    padding: 10px;
+  }
+
+  img {
+    width: 100px;
+  }
 }
 </style>

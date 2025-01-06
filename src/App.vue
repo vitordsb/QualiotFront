@@ -5,7 +5,7 @@ import Header from './components/Header.vue';
 <template>
   <Header />
   <Transition name="router" mode="fade">
-    <router-view v-slot="{ Component }">  
+    <router-view v-slot="{ Component }">
         <component :is="Component" :key="$route.fullPath" />
       </router-view>
     </Transition>
@@ -16,7 +16,7 @@ import Header from './components/Header.vue';
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif
 }
 .router-enter-from {
   opacity: 0;
