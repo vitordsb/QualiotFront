@@ -5,7 +5,7 @@
       <div class="dropdown">
         <button class="dropdown-btn" @click="toggleDropdown">
           <img src="/src/assets/svg/user.png" alt="User Icon">
-          <span>Olá {{ captalizeFistLetter(userName) }}</span>
+          <span>Bem vindo, {{ userName }}!</span>
         </button>
         <div class="dropdown-content" v-if="dropdownVisible">
           <a class="logout" @click="logout">Logout</a>
@@ -36,6 +36,7 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue';
 import { ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
@@ -44,11 +45,7 @@ const dropdownVisible = ref(false);
 const menuVisible = ref(false);
 const isLogin = ref(false);
 const isRegister = ref(false);
-const userName = localStorage.getItem('name')
-
-function captalizeFistLetter(string) {
-  return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
-}
+const userName = localStorage.getItem('name') || "User"
 
 watch(route, (newRoute) => {
   isLogin.value = newRoute.path === '/';
@@ -57,6 +54,8 @@ watch(route, (newRoute) => {
 
 function logout() {
   window.location.replace('/');
+  localStorage.removeItem('name')
+  localStorage.removeItem('token')
 }
 
 function toggleDropdown() {
@@ -90,9 +89,7 @@ function toggleMenu() {
 
 .links {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 55px;
+  gap: 20px;
 }
 
 .links a {
@@ -118,6 +115,7 @@ function toggleMenu() {
 .logo img {
   height: 50px;
   width: auto;
+  border-radius: 50%;
 }
 
 .dropdown {

@@ -1,14 +1,15 @@
 <script setup>
 import Header from './components/Header.vue';
+import { RouterView } from 'vue-router';
 </script>
 
 <template>
   <Header />
-  <Transition name="router" mode="fade">
-    <router-view v-slot="{ Component }">
-        <component :is="Component" :key="$route.fullPath" />
-      </router-view>
-    </Transition>
+    <RouterView v-slot="{ Component }">
+        <Transition name="router" mode="default">
+            <component :is="Component" :key="$route.fullPath" />
+        </Transition>
+    </RouterView>
 </template>
 
 <style>
@@ -17,6 +18,12 @@ import Header from './components/Header.vue';
   padding: 0;
   box-sizing: border-box;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif
+}
+
+body {
+    background: linear-gradient(100deg, #00c6ff, #B3EDFF);
+    background-repeat: no-repeat;
+    height: 100vh;
 }
 .router-enter-from {
   opacity: 0;

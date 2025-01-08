@@ -11,13 +11,5 @@ import { RouterView } from 'vue-router';
 </template>
 
 <style>
-.home {
-  height: auto;
-  display: flex;
-}
 
-.dashboard {
-  width: 100%;
-  background-color: #fff;
-}
 </style>

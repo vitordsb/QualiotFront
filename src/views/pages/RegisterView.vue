@@ -59,12 +59,7 @@ const messageType = ref('');
 
 const handleRegister = async () => {
   try {
-    if (!name.value || !email.value || !password.value) {
-      message.value = 'Por favor, preencha todos os campos.';
-      messageType.value = 'error';
-      return;
-    }
-    const response = await fetch('https://qualiotbackend.onrender.com/users', {
+    const response = await fetch('https://qualiotbackend.onrender.com/users/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -84,17 +79,23 @@ const handleRegister = async () => {
     }
 
     const data = await response.json();
+    console.log(data)
+
     const token = data.userLogin.token;
     localStorage.setItem('token', token);
 
     message.value = 'Registro realizado com sucesso! Redirecionando para o login...';
     messageType.value = 'success';
     setTimeout(() => {
+      message.value = ''
       router.push('/');
-    }, 3000);
+    }, 1200);
   } catch (error) {
     message.value = 'Erro ao conectar com o servidor. Tente novamente mais tarde.';
     messageType.value = 'error';
+    setTimeout(() => {
+      message.value = ''
+    }, 1200);
   }
 };
 
