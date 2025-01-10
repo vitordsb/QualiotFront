@@ -71,13 +71,6 @@ const handleRegister = async () => {
       }),
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      message.value = errorData.message || 'Erro ao registrar. Tente novamente.';
-      messageType.value = 'error';
-      return;
-    }
-
     const data = await response.json();
     console.log(data)
 
@@ -86,10 +79,11 @@ const handleRegister = async () => {
 
     message.value = 'Registro realizado com sucesso! Redirecionando para o login...';
     messageType.value = 'success';
+    router.push('/');
+
     setTimeout(() => {
       message.value = ''
-      router.push('/');
-    }, 1200);
+    }, 1000);
   } catch (error) {
     message.value = 'Erro ao conectar com o servidor. Tente novamente mais tarde.';
     messageType.value = 'error';

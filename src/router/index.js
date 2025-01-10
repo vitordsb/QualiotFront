@@ -1,4 +1,11 @@
 import { createRouter, createWebHistory } from "vue-router";
+import LoginView from "../views/pages/LoginView.vue";
+import RegisterView from "../views/pages/RegisterView.vue";
+import HomeView from "../views/HomeView.vue";
+import ProdutoView from "../views/ProdutoView.vue";
+import RegrasView from "../views/RegrasView.vue";
+import ComparacaoView from "../views/ComparacaoView.vue";
+import RelatorioView from "../views/RelatorioView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -6,37 +13,37 @@ const router = createRouter({
     {
       path: "/",
       name: "login",
-      component: () => import("../views/pages/LoginView.vue"),
+      component: LoginView,
     },
     {
       path: "/register",
       name: "register",
-      component: () => import("../views/pages/RegisterView.vue"),
+      component: RegisterView,
     },
     {
       path: "/home",
-      component: () => import("../views/HomeView.vue"),
+      component: HomeView,
       meta: {requiresAuth: true},
       children: [
         {
           path: "/home",
           name: "produtos",
-          component: () => import("../views/ProdutoView.vue"),
+          component: ProdutoView,
         },
         {
           path: "/regras",
           name: "regras",
-          component: () => import("../views/RegrasView.vue"),
+          component: RegrasView,
         },
         {
           path: "/comparacao",
           name: "comparacao",
-          component: () => import("../views/ComparacaoView.vue"),
+          component: ComparacaoView,
         },
         {
           path: "/relatorio",
           name: "relatorio",
-          component: () => import("../views/RelatorioView.vue"),
+          component: RelatorioView,
         }
       ],
     },
