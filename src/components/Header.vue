@@ -56,6 +56,9 @@ function logout() {
   window.location.replace('/');
   localStorage.removeItem('name')
   localStorage.removeItem('token')
+  localStorage.removeItem('produtoParaDarNota')
+  localStorage.removeItem('abaSelecionada')
+  localStorage.removeItem('indexSelecionado')
 }
 
 function toggleDropdown() {
