@@ -1,12 +1,22 @@
 <template>
   <div class="produto-cadastro">
+    <!-- Abas -->
     <div class="abas">
-      <button :class="{ active: abaAtiva === 'cadastrar' }" @click="abaAtiva = 'cadastrar'">Cadastrar Produto</button>
-      <button :class="{ active: abaAtiva === 'listar' }" @click="listarProdutos">Listar Produtos</button>
+      <button 
+        :class="{ active: abaAtiva === 'cadastrar' }" 
+        @click="abaAtiva = 'cadastrar'"
+      >
+        Cadastrar Produto
+      </button>
+      <button 
+        :class="{ active: abaAtiva === 'listar' }" 
+        @click="listarProdutos"
+      >
+        Listar Produtos
+      </button>
     </div>
 
     <div class="transicao-container">
-      <!-- Cadastro de Produto -->
       <Transition name="fade-horizontal">
         <div v-if="abaAtiva === 'cadastrar'" class="form-container">
           <h1>Cadastro de Produto</h1>
@@ -15,22 +25,23 @@
               <label for="nome">Nome do Produto:</label>
               <input type="text" id="nome" v-model="produto.nome" required />
             </div>
-
             <div class="form-group">
               <label for="descricao">Descrição:</label>
               <textarea id="descricao" v-model="produto.descricao" required></textarea>
             </div>
-
             <button type="submit" class="btn-cadastrar">Cadastrar Produto</button>
           </form>
         </div>
       </Transition>
 
-      <!-- Lista de Produtos -->
       <Transition name="fade-horizontal">
         <div v-if="abaAtiva === 'listar'" class="list-container">
           <h1>Produtos Cadastrados</h1>
-          <div v-if="produtos.length" class="produtos-list">
+          <div v-if="isLoading" class="loading-container">
+            <div class="spinner"></div>
+            <p>Carregando produtos, por favor aguarde...</p>
+          </div>
+          <div v-else-if="produtos.length" class="produtos-list">
             <div v-for="(prod, index) in produtos" :key="index" class="produto-card">
               <div class="produto-detalhes">
                 <h2>{{ capitalizeFirstLetter(prod.name) }}</h2>
@@ -48,18 +59,21 @@
   </div>
 </template>
 
+
 <script setup>
 import { ref } from 'vue';
 
 const abaAtiva = ref('cadastrar');
 const produto = ref({ nome: '', descricao: '' });
 const produtos = ref([]);
+const isLoading = ref(false);
 
 const backendURL = 'https://qualiotbackend.onrender.com/products';
 
 const listarProdutos = async () => {
   abaAtiva.value = 'listar';
   try {
+    isLoading.value = true; 
     const token = localStorage.getItem('token');
 
     const response = await fetch(backendURL, {
@@ -80,6 +94,8 @@ const listarProdutos = async () => {
   } catch (error) {
     console.error('Erro ao buscar produtos:', error);
     alert('Não foi possível carregar os produtos. Faça login novamente.');
+  } finally {
+    isLoading.value = false;
   }
 };
 
@@ -298,4 +314,29 @@ text-align: start;
 .btn-remover:hover {
   background-color: #d42f2f;
 }
+.loading-container {
+  text-align: center;
+  color: #555;
+  font-size: 1.2em;
+}
+
+.spinner {
+  margin: 10px auto;
+  width: 50px;
+  height: 50px;
+  border: 5px solid #e1e4e8;
+  border-top: 5px solid #348acf;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 </style>

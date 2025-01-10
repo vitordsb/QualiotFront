@@ -1,51 +1,70 @@
 <script setup>
 import { defineProps, ref, onMounted } from 'vue';
-const perguntas = ref([])
+
+const perguntas = ref([]);
+const isLoading = ref(true);
 const props = defineProps({
   tabIndex: {
     type: Number,
-    required: true
-  }
-})
+    required: true,
+  },
+});
+
 const buscarPerguntas = async () => {
   try {
+    isLoading.value = true; 
     const token = localStorage.getItem('token');
-    const abaSelecionada = localStorage.getItem("abaSelecionada");
-    const response = await fetch(`https://qualiotbackend.onrender.com/questions/get-by-category/${abaSelecionada}?details=false`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
+    const abaSelecionada = localStorage.getItem('abaSelecionada');
+    const response = await fetch(
+      `https://qualiotbackend.onrender.com/questions/get-by-category/${abaSelecionada}?details=false`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
-      },
-    });
+        },
+      }
+    );
     const data = await response.json();
     perguntas.value = data.questionCategory.map((pergunta) => pergunta.title);
     console.log(perguntas.value);
   } catch (error) {
     console.error('Erro ao buscar perguntas:', error);
+  } finally {
+    isLoading.value = false;
   }
-} 
+};
+
 onMounted(() => {
   buscarPerguntas();
 });
 </script>
+
 <template>
   <div class="form">
-    <div class="questionario">
-      <div class="titulo">
-        <h3>Perguntas norteadoras</h3>
+    <template v-if="isLoading">
+      <div class="loading">
+        <div class="spinner"></div>
+        <p>Carregando perguntas, por favor aguarde...</p>
       </div>
-      <form action="">
-        <div class="pergunta" v-for="(pergunta, index) in perguntas" :key="index">
-          <label :for="'pergunta' + index">{{ pergunta }}:</label>
-          <input type="number" :id="'pergunta' + index" :name="'pergunta' + index" min="0" max="10" />
+    </template>
+    <template v-else>
+      <div class="questionario">
+        <div class="titulo">
+          <h3>Perguntas norteadoras</h3>
         </div>
-      </form>
-    </div>
-    <div class="botoes">
-      <button type="submit" class="btn btn-primary">Enviar Respostas</button>
-      <button type="reset" class="btn btn-secondary">Limpar</button>
-    </div>
+        <form action="">
+          <div class="pergunta" v-for="(pergunta, index) in perguntas" :key="index">
+            <label :for="'pergunta' + index">{{ pergunta }}:</label>
+            <input type="number" :id="'pergunta' + index" :name="'pergunta' + index" min="0" max="10" />
+          </div>
+        </form>
+      </div>
+      <div class="botoes">
+        <button type="submit" class="btn btn-primary">Enviar Respostas</button>
+        <button type="reset" class="btn btn-secondary">Limpar</button>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -62,20 +81,36 @@ onMounted(() => {
   border: 1px solid #e1e4e8;
   border-radius: 15px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  @media (max-width: 768px) {
-    padding: 0;
-    margin: 0 auto;
+}
+
+.loading {
+  text-align: center;
+  color: #555;
+  font-size: 1.2em;
+}
+
+.spinner {
+  margin: 10px auto;
+  width: 50px;
+  height: 50px;
+  border: 5px solid #e1e4e8;
+  border-top: 5px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
 
 .questionario {
   padding: 100px;
   width: 100%;
-  @media (max-width: 768px) {
-    padding: 0;
-    height: auto;
-    margin: 0;
-  }
 }
 
 .titulo h3 {
@@ -84,10 +119,6 @@ onMounted(() => {
   font-weight: bold;
   margin-bottom: 50px;
   color: #333;
-  @media (max-width: 768px) {
-    margin-top: 30px;
-    font-size: 1.5em;
-  }
 }
 
 .pergunta {
@@ -97,20 +128,12 @@ onMounted(() => {
   gap: 50px;
   align-items: center;
   margin-bottom: 15px;
-  @media (max-width: 768px) {
-    padding: 0;
-    width: 100%;
-    gap: 0;
-  }
 }
 
 .pergunta label {
   font-size: 2em;
   color: #555;
   margin-bottom: 5px;
-  @media (max-width: 768px) {
-    font-size: 1em;
-  }
 }
 
 .pergunta input {
@@ -123,16 +146,6 @@ onMounted(() => {
   font-size: 2em;
   background-color: #fff;
   transition: box-shadow 0.3s ease;
-  @media (max-width: 768px) {
-    font-size: 1em;
-  }
-}
-
-.pergunta input:focus {
-  outline: none;
-  box-shadow: none;
-  border: none;
-  border-color: none;
 }
 
 .botoes {
@@ -170,20 +183,5 @@ onMounted(() => {
 .btn-secondary:hover {
   background-color: #495057;
   transform: scale(1.05);
-}
-
-@media (max-width: 768px) {
-  .form {
-    width: 95%;
-  }
-
-  .botoes {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .btn {
-    width: 100%;
-  }
 }
 </style>
