@@ -24,6 +24,9 @@ body {
     background: linear-gradient(100deg, #00c6ff, #B3EDFF);
     background-repeat: no-repeat;
     height: 100vh;
+    @media (max-width: 768px) {
+    height: auto;
+  }
 }
 .router-enter-from {
   opacity: 0;
