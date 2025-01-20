@@ -81,10 +81,7 @@ const handleRegister = async () => {
     message.value = 'Registro realizado com sucesso! Redirecionando para o login...';
     messageType.value = 'success';
     router.push('/');
-
-    setTimeout(() => {
-      message.value = ''
-    }, 1000);
+    
   } catch (error) {
     message.value = 'Erro ao conectar com o servidor. Tente novamente mais tarde.';
     messageType.value = 'error';

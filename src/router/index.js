@@ -30,11 +30,6 @@ const router = createRouter({
           component: () => import("../views/RegrasView.vue"),
         },
         {
-          path: "/comparacao",
-          name: "comparacao",
-          component: () => import("../views/ComparacaoView.vue"),
-        },
-        {
           path: "/relatorio",
           name: "relatorio",
           component: () => import("../views/RelatorioView.vue"),

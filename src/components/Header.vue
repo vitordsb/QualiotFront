@@ -17,7 +17,6 @@
         <RouterLink to="/cadastrados">Ver cadastrados</RouterLink>
         <RouterLink to="/home">Cadastrar produtos</RouterLink>
         <RouterLink to="/regras">Fazer avaliação</RouterLink>
-        <RouterLink to="/comparacao">Comparar produtos</RouterLink>
         <RouterLink to="/relatorio">Solicitar relatório</RouterLink>
       </nav>
 

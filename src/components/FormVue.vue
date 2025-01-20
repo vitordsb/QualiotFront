@@ -10,6 +10,31 @@ const descricao = ref([]);
 const perguntas = ref([]);
 const isLoading = ref(true);
 const notas = ref([]);
+const pesos = ref([]);
+
+const distribuirPesos = () => {
+  const numPerguntas = perguntas.value.length;
+  switch (numPerguntas) {
+    case 1:
+      pesos.value = [4];
+      break;
+    case 2:
+      pesos.value = [4, 3];
+      break;
+    case 3:
+      pesos.value = [4, 3, 3];
+      break;
+    case 4:
+      pesos.value = [4, 3, 3, 2];
+      break;
+    case 5:
+      pesos.value = [4, 3, 3, 2, 2];
+      break;
+    default:
+      pesos.value = [];
+      break;
+  }
+};
 
 
 
@@ -104,8 +129,6 @@ const buscarPerguntas = async () => {
     localStorage.setItem('descricao', descricao.value);
     localStorage.setItem('perguntasId', perguntaId);
     localStorage.setItem('notas', notas.value);
-
-    // Carrega a média da aba ativa
     const media = localStorage.getItem(`media_tab_${props.tabIndex}`);
     if (media) {
       console.log(`Média carregada para tabIndex ${props.tabIndex}: ${media}`);
@@ -123,13 +146,13 @@ const calcularMedia = async () => {
   const perguntasId = localStorage.getItem('perguntasId').split(',');
 
   try {
-    let somaNotas = 0;
-    let totalPerguntas = 0;
+    let somaPesos = 0;
+    let somaPonderada = 0;
+
+    distribuirPesos();
 
     for (let i = 0; i < perguntas.value.length; i++) {
-      // Verifica se a nota foi preenchida
       if (notas.value[i] !== undefined && notas.value[i] !== null) {
-        // Atualiza a nota no backend
         const response = await fetch(`https://qualiotbackend.onrender.com/questions/${perguntasId[i]}`, {
           method: 'PATCH',
           headers: {
@@ -145,25 +168,22 @@ const calcularMedia = async () => {
           throw new Error(`Erro ao atualizar nota da pergunta ${perguntas.value[i]}`);
         }
 
-        somaNotas += parseFloat(notas.value[i]);
-        totalPerguntas++;
+        const peso = pesos.value[i];
+        somaPonderada += parseFloat(notas.value[i]) * peso;
+        somaPesos += peso;
       }
     }
+    const media = somaPesos > 0 ? (somaPonderada / somaPesos).toFixed(2) : 0;
+    console.log(`Média ponderada calculada para tabIndex ${props.tabIndex}: ${media}`);
 
-    // Calcula a média e exibe
-    const media = totalPerguntas > 0 ? (somaNotas / totalPerguntas).toFixed(2) : 0;
-    console.log(`Média calculada para tabIndex ${props.tabIndex}: ${media}`);
-
-    // Salva no localStorage com uma chave única por tabIndex
     localStorage.setItem(`media_tab_${props.tabIndex}`, media);
-
+    location.reload();
   } catch (error) {
     isLoading.value = false;
-    console.error('Erro ao calcular a média:', error);
+    console.error('Erro ao calcular a média ponderada:', error);
     alert('Erro ao calcular a média. Tente novamente.');
   } finally {
     isLoading.value = false;
-    location.reload();
   }
 };
 const media = ref(Number(localStorage.getItem(`media_tab_${props.tabIndex}`)));
@@ -210,8 +230,9 @@ watchEffect(() => {
         </button>
       </div>
       <div class="botoes">
-        <button @click="calcularMedia" class="btn btn-primary">Calcular média</button>
-        <button type="reset" class="btn btn-secondary">Limpar</button>
+        <button @click="calcularMedia" class="btn btn-primary">
+          Calcular média
+        </button>
       </div>
     </template>
   </div>
@@ -374,16 +395,6 @@ watchEffect(() => {
 
 .btn-primary:hover {
   background-color: #0056b3;
-  transform: scale(1.05);
-}
-
-.btn-secondary {
-  background-color: #6c757d;
-  color: white;
-}
-
-.btn-secondary:hover {
-  background-color: #495057;
   transform: scale(1.05);
 }
 .mediaCaluculate {

@@ -1,128 +1,175 @@
-<script setup>
-import { ref, onMounted } from 'vue';
-import * as XLSX from 'xlsx';
-
-const produtos = ref([]);
-const usuarioNome = ref('');
-const usuarioEmail = ref('');
-
-function calcularMediaFinal(medias) {
-  const notasValidas = medias.filter((nota) => nota !== null && nota !== '');
-  const soma = notasValidas.reduce((acc, nota) => acc + parseFloat(nota), 0);
-  return notasValidas.length > 0 ? (soma / notasValidas.length).toFixed(2) : '0.00';
-}
-
-onMounted(() => {
-  const userData = JSON.parse(localStorage.getItem('userName') || '{}');
-  usuarioNome.value = userData.name || 'Usuário';
-  usuarioEmail.value = userData.email || 'sem_email@exemplo.com';
-
-  // Recupera os produtos do localStorage e faz o parse do JSON
-  const produtosSalvos = JSON.parse(localStorage.getItem('produtos') || '[]');
-
-  produtos.value = produtosSalvos.map((produto) => {
-    const medias = JSON.parse(localStorage.getItem('mediaPorAba') || '[]').map((media) =>
-      media ? parseFloat(media) : null
-    );
-
-    // Recupera as avaliações com justificativas para o produto específico
-    const avaliacoes = JSON.parse(localStorage.getItem(`avaliacoes_${produto.nome}`) || '[]');
-    const justificativas = avaliacoes.map(avaliacao => avaliacao.justificativa || 'Sem justificativa');
-
-    const mediaFinal = calcularMediaFinal(medias);
-
-    return { ...produto, medias, justificativas, mediaFinal };
-  });
-});
-
-function exportarParaExcel() {
-  const usuarioInfo = [
-    { Usuário: usuarioNome.value, Email: usuarioEmail.value }
-  ];
-
-  const data = produtos.value.map(produto => {
-    const row = {
-      Nome: produto.nome,
-      Descrição: produto.descricao,
-      'Média Final': produto.mediaFinal,
-    };
-    produto.medias.forEach((media, index) => {
-      row[`Categoria ${index + 1} - Nota`] = media !== null ? media : 'Sem avaliação';
-      row[`Categoria ${index + 1} - Justificativa`] = produto.justificativas[index] || 'Sem justificativa';
-    });
-    return row;
-  });
-
-  const dadosParaExportar = [...usuarioInfo, {}, ...data];
-
-  const worksheet = XLSX.utils.json_to_sheet(dadosParaExportar);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Relatório de Avaliação');
-
-  XLSX.writeFile(workbook, 'Relatorio_Avaliacao_Produtos.xlsx');
-}
-</script>
-
-
-
 <template>
-  <div class="relatorio-container">
-    <h1>Relatório de Avaliação dos Produtos</h1>
-    <p><strong>Usuário:</strong> {{ usuarioNome }}</p>
-    <p><strong>Email:</strong> {{ usuarioEmail }}</p>
-    <button @click="exportarParaExcel" class="export-button">Exportar para Excel</button>
-    <div v-if="produtos.length">
-      <div v-for="(produto, index) in produtos" :key="index" class="produto-relatorio">
-        <h2>{{ produto.nome }}</h2>
-        <p><strong>Descrição:</strong> {{ produto.descricao }}</p>
-        <h3>Médias e Justificativas das Categorias:</h3>
-        <ul>
-          <li v-for="(media, idx) in produto.medias" :key="idx">
-            <strong>Categoria {{ idx + 1 }}:</strong> 
-            Nota: {{ media !== null ? media : 'Sem avaliação' }} |
-            Justificativa: {{ produto.justificativas[idx] || 'Sem justificativa' }}
-          </li>
-        </ul>
-        <p><strong>Média Final:</strong> {{ produto.mediaFinal }}</p>
-      </div>
+  <div class="relatorio-view">
+    <h1>Relatório Geral</h1>
+    <button @click="gerarRelatorio" class="btn-exportar">
+      Exportar Relatório como Planilha
+    </button>
+    <div v-if="isLoading" class="loading">
+      <p>Carregando dados...</p>
     </div>
-    <p v-else>Nenhum produto cadastrado.</p>
+    <div v-else>
+      <h2>Dados do Relatório</h2>
+      <pre>{{ relatorio }}</pre>
+    </div>
   </div>
 </template>
 
+<script setup>
+import { ref, onMounted } from "vue";
+import * as XLSX from "xlsx";
+
+// Estados
+const relatorio = ref({});
+const isLoading = ref(true);
+
+// Dados simulados ou carregados do localStorage
+const carregarRelatorioLocal = () => {
+  try {
+    isLoading.value = true;
+
+    // Simula os dados armazenados no localStorage
+    const usuario = JSON.parse(localStorage.getItem("user")) || {
+      name: "name",
+      email: "usuario@exemplo.com",
+    };
+
+    const produto = JSON.parse(localStorage.getItem("produto")) || {
+      name: "Produto Exemplo",
+      description: "Descrição do Produto Exemplo",
+    };
+
+    const categorias = JSON.parse(localStorage.getItem("categorias")) || [
+      {
+        name: "Categoria 1",
+        perguntas: [
+          {
+            title: "Pergunta 1",
+            nota: 8,
+            justificativa: "Justificativa para a Pergunta 1",
+          },
+          {
+            title: "Pergunta 2",
+            nota: 7,
+            justificativa: "Justificativa para a Pergunta 2",
+          },
+        ],
+      },
+      {
+        name: "Categoria 2",
+        perguntas: [
+          {
+            title: "Pergunta 3",
+            nota: 9,
+            justificativa: "Justificativa para a Pergunta 3",
+          },
+        ],
+      },
+    ];
+
+    const mediaFinal =
+      localStorage.getItem("mediaFinal") ||
+      categorias.reduce((acc, categoria) => {
+        const mediaCategoria =
+          categoria.perguntas.reduce(
+            (sum, pergunta) => sum + (pergunta.nota || 0),
+            0
+          ) / categoria.perguntas.length;
+        return acc + mediaCategoria;
+      }, 0) / categorias.length;
+
+    relatorio.value = { usuario, produto, categorias, mediaFinal: mediaFinal.toFixed(2) };
+  } catch (error) {
+    console.error("Erro ao carregar o relatório:", error);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// Gera e exporta a planilha com os dados do relatório
+const gerarRelatorio = () => {
+  try {
+    const dados = relatorio.value;
+
+    // Estrutura dos dados para a planilha
+    const planilha = [];
+
+    // Adiciona dados do usuário
+    planilha.push(["Usuário"]);
+    planilha.push(["Nome", dados.usuario.name]);
+    planilha.push(["Email", dados.usuario.email]);
+
+    // Adiciona dados do produto
+    planilha.push([]);
+    planilha.push(["Produto"]);
+    planilha.push(["Nome", dados.produto.name]);
+    planilha.push(["Descrição", dados.produto.description]);
+
+    // Adiciona categorias, perguntas, notas e justificativas
+    dados.categorias.forEach((categoria) => {
+      planilha.push([]);
+      planilha.push([`Categoria: ${categoria.name}`]);
+      planilha.push(["Pergunta", "Nota", "Justificativa"]);
+
+      categoria.perguntas.forEach((pergunta) => {
+        planilha.push([
+          pergunta.title,
+          pergunta.nota || "Não informada",
+          pergunta.justificativa || "Não informada",
+        ]);
+      });
+    });
+
+    // Adiciona a média final
+    planilha.push([]);
+    planilha.push(["Média Final"]);
+    planilha.push(["", dados.mediaFinal]);
+
+    // Converte os dados para uma planilha XLSX
+    const ws = XLSX.utils.aoa_to_sheet(planilha);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Relatório Geral");
+
+    // Exporta o arquivo XLSX
+    XLSX.writeFile(wb, "Relatorio_Geral.xlsx");
+    alert("Relatório exportado com sucesso!");
+  } catch (error) {
+    console.error("Erro ao gerar o relatório:", error);
+    alert("Erro ao gerar o relatório.");
+  }
+};
+
+// Carrega os dados ao montar o componente
+onMounted(() => {
+  carregarRelatorioLocal();
+});
+</script>
+
 <style scoped>
-.relatorio-container {
+.relatorio-view {
   padding: 20px;
-  height: 92vh;
-  max-width: 600px;
+  max-width: 800px;
   margin: 0 auto;
 }
 
-li {
-  list-style-type: none;
-}
-
-.produto-relatorio {
-  margin-bottom: 30px;
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  background-color: #f9f9f9;
-}
-
-.export-button {
-  margin-bottom: 20px;
-  padding: 10px 20px;
+.btn-exportar {
+  padding: 10px 15px;
   font-size: 16px;
-  color: #fff;
-  background-color: #4CAF50;
+  font-weight: bold;
+  background-color: #007bff;
+  color: white;
   border: none;
-  border-radius: 5px;
+  border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
-.export-button:hover {
-  background-color: #45a049;
+.btn-exportar:hover {
+  background-color: #0056b3;
+}
+
+.loading {
+  text-align: center;
+  font-size: 18px;
+  color: #555;
 }
 </style>
