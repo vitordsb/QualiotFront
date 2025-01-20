@@ -94,8 +94,6 @@ const handleLogin = async () => {
     setTimeout(() => {
       message.value = '';
     }, 2000);
-  } finally {
-    isLoading.value = false;
   }
 };
 </script>

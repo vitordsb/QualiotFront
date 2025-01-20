@@ -40,6 +40,7 @@
         Já tem uma conta? <RouterLink to="/">Faça login aqui</RouterLink>
       </p>
       <p :class="['message', messageType]" v-if="message">{{ message }}</p>
+      <div v-if="isLoading" class="spinner"></div>
     </div>
     <img src="/src/assets/logo/qualiot.png" alt="">
   </div>
@@ -51,6 +52,7 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { RouterLink } from 'vue-router';
 
+const isLoading = ref(false);
 const router = useRouter();
 const name = ref('');
 const email = ref('');
@@ -60,7 +62,8 @@ const messageType = ref('');
 
 const handleRegister = async () => {
   try {
-    const response = await fetch('https://qualiotbackend.onrender.com/users/', {
+    isLoading.value = true;
+    const response = await fetch('https://qualiotbackend.onrender.com/users', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -71,23 +74,33 @@ const handleRegister = async () => {
         password: password.value,
       }),
     });
-
+    isLoading.value = false;
     const data = await response.json();
     console.log(data)
 
-    const token = data.userLogin.token;
-    localStorage.setItem('token', token);
-
-    message.value = 'Registro realizado com sucesso! Redirecionando para o login...';
+    if (!response.ok) {
+      isLoading.value = false;
+      const errorData = await response.json();
+      message.value = errorData.message || 'Erro ao registrar. Verifique suas credenciais.';
+      messageType.value = 'error';
+      return;
+    }
+    message.value = 'Cadastro realizado com sucesso! Redirecionando para o login...';
     messageType.value = 'success';
-    router.push('/');
+
+    setTimeout(() => {
+      message.value = '';
+      router.push('/');
+    }, 2000);
     
   } catch (error) {
-    message.value = 'Erro ao conectar com o servidor. Tente novamente mais tarde.';
+    isLoading.value = false;
+    console.error('Erro ao registrar:', error);
+    message.value = 'Erro ao registrar. Verifique suas credenciais.';
     messageType.value = 'error';
     setTimeout(() => {
       message.value = ''
-    }, 1200);
+    }, 3000);
   }
 };
 
@@ -247,6 +260,24 @@ input[type="password"]:focus {
 
   img {
     width: 100px;
+  }
+}
+.spinner {
+  margin: 10px auto;
+  width: 50px;
+  height: 50px;
+  border: 5px solid #e1e4e8;
+  border-top: 5px solid #348acf;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
 </style>

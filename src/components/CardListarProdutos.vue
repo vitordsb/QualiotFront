@@ -27,11 +27,11 @@ const isLoading = ref(false);
 const selectedProdutoIndex = ref(null);
 const backendURL = 'https://qualiotbackend.onrender.com/products';
 
-const listarProdutos = async () => {
+const listarProdutos = () => {
   try {
     isLoading.value = true;
     const token = localStorage.getItem('token');
-    const response = await fetch(backendURL, {
+    const response = fetch(backendURL, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -43,7 +43,7 @@ const listarProdutos = async () => {
       throw new Error('Erro ao buscar produtos');
     }
 
-    const data = await response.json();
+    const data = response.json();
     produtos.value = data.product
     const indexProduto = localStorage.getItem("produtoSelecionado")
     localStorage.setItem("indexSelecionado", indexProduto)
