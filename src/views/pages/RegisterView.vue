@@ -37,7 +37,7 @@
         <button type="submit" class="register-button">Registrar</button>
       </form>
       <p class="login-link">
-        Já tem uma conta? <router-link to="/">Faça login aqui</router-link>
+        Já tem uma conta? <RouterLink to="/">Faça login aqui</RouterLink>
       </p>
       <p :class="['message', messageType]" v-if="message">{{ message }}</p>
     </div>
@@ -49,6 +49,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { RouterLink } from 'vue-router';
 
 const router = useRouter();
 const name = ref('');
@@ -101,7 +102,7 @@ const handleRegister = async () => {
   align-items: center;
   justify-content: center;
   height: 100vh;
-  gap: 10px;
+  gap: 50px;
   background: linear-gradient(135deg, #00c6ff, #fff);
   padding: 30px;
   @media (max-width: 700px){

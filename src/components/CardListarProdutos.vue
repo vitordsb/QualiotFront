@@ -2,7 +2,10 @@
   <div class="produto-selecao">
     <h3>Listar e Selecionar Produto</h3>
     <div v-if="produtos.length === 0">
-      <p>Carregando produtos...</p>
+      <div class="loading">
+        <div class="spinner"></div>
+        <p>Carregando produtos...</p>
+      </div>
     </div>
     <select v-if="produtos.length" v-model="selectedProdutoIndex" class="select-produto">
       <option v-for="(prod, index) in produtos" :key="index" :value="index">
@@ -20,10 +23,12 @@
 <script setup>
 import { onMounted, ref, watch, computed } from 'vue';
 const produtos = ref([]);
+const isLoading = ref(false);
 const selectedProdutoIndex = ref(null);
 const backendURL = 'https://qualiotbackend.onrender.com/products';
 const listarProdutos = async () => {
   try {
+    isLoading.value = true;
     const token = localStorage.getItem('token');
     const response = await fetch(backendURL, {
       method: 'GET',
@@ -46,14 +51,11 @@ const listarProdutos = async () => {
     localStorage.setItem("produtoParaDarNota", productId)
 
   } catch (error) {
+    isLoading.value = false;
     console.error('Erro ao buscar produtos:', error);
     alert('Não foi possível carregar os produtos. Faça login novamente.');
   }
 };
-
-onMounted(() => {
-  listarProdutos();
-});
 
 const selectedProduto = computed(() => {
   if (selectedProdutoIndex.value !== null && selectedProdutoIndex.value >= 0 && selectedProdutoIndex.value < produtos.value.length) {
@@ -68,6 +70,7 @@ watch(selectedProdutoIndex, (newIndex) => {
   }
 });
 onMounted(() => {
+  listarProdutos();
   const produtoSalvo = localStorage.getItem('produtoSelecionado');
   if (produtoSalvo) {
     selectedProdutoIndex.value = parseInt(produtoSalvo, 10);
@@ -104,4 +107,30 @@ onMounted(() => {
   font-size: 14px;
   color: #555;
 }
+
+.loading {
+  text-align: center;
+  color: #555;
+  font-size: 1.2em;
+}
+
+.spinner {
+  margin: 10px auto;
+  width: 50px;
+  height: 50px;
+  border: 5px solid #e1e4e8;
+  border-top: 5px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 </style>

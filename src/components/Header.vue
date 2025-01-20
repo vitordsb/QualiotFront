@@ -4,27 +4,23 @@
       <!-- Dropdown para usuário -->
       <div class="dropdown">
         <button class="dropdown-btn" @click="toggleDropdown">
-          <img src="/src/assets/svg/user.png" alt="User Icon">
+          <img src="/src/assets/logo/qualiot.png" alt="User Icon">
           <span>Bem vindo, {{ userName }}!</span>
         </button>
         <div class="dropdown-content" v-if="dropdownVisible">
-          <a class="logout" @click="logout">Logout</a>
+          <a class="logout" @click="logout">Sair</a>
         </div>
       </div>
 
-
       <!-- Links centralizados -->
       <nav class="links" :class="{ active: menuVisible }">
+        <RouterLink to="/cadastrados">Ver cadastrados</RouterLink>
         <RouterLink to="/home">Cadastrar produtos</RouterLink>
         <RouterLink to="/regras">Fazer avaliação</RouterLink>
         <RouterLink to="/comparacao">Comparar produtos</RouterLink>
         <RouterLink to="/relatorio">Solicitar relatório</RouterLink>
       </nav>
 
-      <!-- Logo à direita -->
-      <div class="logo">
-        <img src="/src/assets/logo/qualiot.png" alt="Logo">
-      </div>
       <!-- Botão Hamburger -->
       <button class="hamburger" @click="toggleMenu">
         <span></span>
@@ -36,30 +32,27 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue';
 import { ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
+import { RouterLink } from 'vue-router';
 
+const router = useRouter();
 const route = useRoute();
+
 const dropdownVisible = ref(false);
 const menuVisible = ref(false);
 const isLogin = ref(false);
 const isRegister = ref(false);
-const userName = localStorage.getItem('name') || "User"
+const userName = localStorage.getItem('name') || "Recarregue a página";
 
 watch(route, (newRoute) => {
   isLogin.value = newRoute.path === '/';
   isRegister.value = newRoute.path === '/register';
 });
 
-function logout() {
-  window.location.replace('/');
-  localStorage.removeItem('name')
-  localStorage.removeItem('token')
-  localStorage.removeItem('produtoParaDarNota')
-  localStorage.removeItem('abaSelecionada')
-  localStorage.removeItem('indexSelecionado')
-}
+const logout = () => {
+  router.push('/');
+};
 
 function toggleDropdown() {
   dropdownVisible.value = !dropdownVisible.value;
@@ -71,7 +64,6 @@ function toggleMenu() {
 </script>
 
 <style scoped>
-
 .header {
   background-color: #F0F2F5;
   padding: 10px 20px;
@@ -96,27 +88,23 @@ function toggleMenu() {
 }
 
 .links a {
+  background-color: #bae2fc;
+  padding: 15px;
+  border-radius: 10px;
   text-decoration: none;
   font-size: 18px;
   font-weight: bold;
-  color: #000;
+  color: #000000;
+  transition: .3s;
 }
 
 .links a:hover {
-  color: #3389CE;
+  background-color: #3389CE;
+  color: #ffffff;
 }
 
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 12px;
-  @media (max-width: 700px){
-      display: none;
-  }
-}
-.logo img {
-  height: 50px;
+.dropdown-btn img {
+  height: auto;
   width: auto;
   border-radius: 50%;
 }
@@ -167,7 +155,6 @@ function toggleMenu() {
   cursor: pointer;
 }
 
-/* Botão hamburger */
 .hamburger {
   display: none;
   flex-direction: column;
@@ -184,7 +171,6 @@ function toggleMenu() {
   background: #000;
 }
 
-/* Responsividade */
 @media (max-width: 768px) {
   .header {
     flex-direction: column;
@@ -196,15 +182,9 @@ function toggleMenu() {
   .dropdown-btn img {
     width: 40px;
   }
-  .logo img {
-    height: 40px;
-  }
-  .logo h1 {
-    font-size: 18px;
-  }
 
   .links {
-    display: none; /* Escondido inicialmente no mobile */
+    display: none; 
     position: absolute;
     top: 100%;
     left: 0;
@@ -217,7 +197,7 @@ function toggleMenu() {
   }
 
   .links.active {
-    display: flex; /* Exibe o menu ao clicar no botão hamburger */
+    display: flex
   }
 
   .hamburger {

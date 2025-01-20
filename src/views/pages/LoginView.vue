@@ -30,9 +30,10 @@
         <button type="submit" class="login-button">Entrar</button>
       </form>
       <p class="register-link">
-        Não tem uma conta? <router-link to="/register">Registre-se aqui</router-link>
+        Não tem uma conta? <RouterLink to="/register">Registre-se aqui</RouterLink>
       </p>
       <p :class="['message', messageType]" v-if="message">{{ message }}</p>
+        <div v-if="isLoading" class="spinner"></div>
     </div>
   </div>
     </Transition>
@@ -41,7 +42,9 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { RouterLink } from 'vue-router';
 
+const isLoading = ref(false);
 const router = useRouter();
 const email = ref('');
 const password = ref('');
@@ -50,6 +53,7 @@ const messageType = ref('');
 
 const handleLogin = async () => {
   try {
+    isLoading.value = true;
     const response = await fetch('https://qualiotbackend.onrender.com/users/login', {
       method: 'POST',
       headers: {
@@ -61,19 +65,20 @@ const handleLogin = async () => {
       }),
     });
     if (!response.ok) {
+      isLoading.value = false;
       const errorData = await response.json();
       message.value = errorData.message || 'Erro ao fazer login. Verifique suas credenciais.';
       messageType.value = 'error';
       return;
     }
-
+    
     const data = await response.json();
     const token = data.userLogin.token;
-    const name = data.userLogin.name
-
+    const name = data.userLogin.name 
+    
     localStorage.setItem('token', token);
     localStorage.setItem('name', name)
-
+    
     message.value = 'Login realizado com sucesso!';
     messageType.value = 'success';
 
@@ -83,11 +88,14 @@ const handleLogin = async () => {
     }, 1000);
 
   } catch (error) {
+    isLoading.value = false;
     message.value = 'Erro ao conectar com o servidor.';
     messageType.value = 'error';
     setTimeout(() => {
       message.value = '';
     }, 2000);
+  } finally {
+    isLoading.value = false;
   }
 };
 </script>
@@ -97,7 +105,7 @@ const handleLogin = async () => {
 
 .login-page {
   display: flex;
-  gap: 10px;
+  gap: 50px;
   align-items: center;
   justify-content: center;
   height: 100vh;
@@ -110,7 +118,7 @@ const handleLogin = async () => {
 }
 
 img {
-  width: 350px;
+  width: 450px;
   border-radius: 50%;
   @media (max-width: 700px){
       width: 250px;
@@ -242,6 +250,24 @@ input[type="password"]:focus {
   .login-button {
     font-size: 18px;
     padding: 10px;
+  }
+}
+.spinner {
+  margin: 10px auto;
+  width: 50px;
+  height: 50px;
+  border: 5px solid #e1e4e8;
+  border-top: 5px solid #348acf;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
 </style>

@@ -13,7 +13,6 @@ function calcularMediaFinal(medias) {
 }
 
 onMounted(() => {
-  // Recupera as informações do usuário do localStorage
   const userData = JSON.parse(localStorage.getItem('userName') || '{}');
   usuarioNome.value = userData.name || 'Usuário';
   usuarioEmail.value = userData.email || 'sem_email@exemplo.com';

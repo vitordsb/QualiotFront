@@ -1,98 +1,91 @@
-<template>
-  <section class="regras-view">
-    <!-- Navegação de Abas -->
-    <div class="abas">
-      <button
-        v-for="(tab, index) in tabs"
-        :key="index"
-        @click="setActiveTab(index)"
-        :class="{ active: activeIndex === index, inactive: tab.inactive }"
-        :disabled="tab.inactive"
-      >
-        {{ tab.title }}
-      </button>
-      <button class="addAba closeAba">
-        +
-      </button>
-    </div>
-    
-    <!-- Conteúdo das Abas -->
-    <div class="conteudo">
-      <div class="grid-container">
-        <!-- Seleção de Produto -->
-        <CardListarProdutos/>
-        
-        <!-- Formulário de Avaliação -->
-        <div class="formulario">
-          <transition name="fade" mode="out-in" class="name">
-            <div :key="activeIndex" class="tab-content">
-              <h2>{{ tabs[activeIndex]?.title }}</h2>
-              <FormVue :key="activeIndex" :tab-index="activeIndex" />
-            </div>
-          </transition>
-        </div>
-        
-      </div>
-    </div>
-  </section>
-</template>
-
 <script setup>
 import { ref, onMounted, watch } from "vue";
 import FormVue from "@/components/FormVue.vue";
 import CardListarProdutos from "@/components/CardListarProdutos.vue";
 
 const tabs = ref([]);
+const isLoading = ref(false);
 const activeIndex = ref(0);
-const mediasPorAba = ref([]);
-const listarTabs = async () => {
-  try {
-    const token = localStorage.getItem("token");
-    const productId = localStorage.getItem("produtoParaDarNota")
-    const response = await fetch(`https://qualiotbackend.onrender.com/categorys/get-by-product/${productId}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
+const categorias = ref([]);
 
-    if (!response.ok) {
-      throw new Error("Erro ao buscar dados das abas");
-    }
+onMounted(() => {
+  listarTabs()
+});
 
-    const data = await response.json();
-    const abaSelecionada = data.category[activeIndex.value]._id;
-    console.log(abaSelecionada)
-    localStorage.setItem("abaSelecionada", abaSelecionada);
-
-    if (Array.isArray(data.category)) {
-      tabs.value = data.category.map((item) => ({
-        title: item.name,
-        _id: item._id, // Salve o ID para referência posterior
-        inactive: false,
-      }));
-      mediasPorAba.value = Array(data.category.length).fill(0);
-    } else {
-      console.error("Estrutura inesperada: ", data);
-      throw new Error("Os dados recebidos não são um array");
-    }
-  } catch (error) {
-    console.error(error);
-  }
-};
-
-const buscarDadosDaAbaAtiva = async () => {
+watch(activeIndex,() => {
+  atualizarTabAtual();
+});
+const removerTab = async () => {
   try {
     const token = localStorage.getItem("token");
     const abaSelecionada = tabs.value[activeIndex.value]?._id;
-    if (!abaSelecionada) {
-      throw new Error("Aba selecionada não encontrada");
+    const response = await fetch(
+      `https://qualiotbackend.onrender.com/categorys/${abaSelecionada}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `${token}`,
+        },
+      }
+    );
+    if (!response.ok) {
+      throw new Error("Erro ao remover aba");
+    }
+    tabs.value.splice(activeIndex.value, 1);
+    listarTabs();
+    alert("Aba removida, vá para outra aba");
+    setActiveTab(0)
+    console.log("Aba removida com sucesso");
+  } catch (error) {
+    console.error("Erro ao remover aba:", error);
+  }
+}
+
+const adicionarTab = async () => {
+  try {
+    const novoTitulo = prompt("Insira o nome da nova categoria:");
+    const token = localStorage.getItem("token");
+    if (!novoTitulo) return;
+    const response = await fetch(
+      `https://qualiotbackend.onrender.com/categorys/`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `${token}`,
+        },
+        body: JSON.stringify({
+          name: novoTitulo,
+          _idProduct: localStorage.getItem("produtoParaDarNota"),
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Erro ao criar nova aba");
     }
 
-    localStorage.setItem("abaSelecionada", abaSelecionada);
+    const data = response.json();
+    tabs.value.push({
+      title: data.name,
+      _id: data._id,
+      inactive: false,
+    });
+    alert("Nova aba criada, precisa ir para ela!");
+    listarTabs();
+    console.log("Nova categoria criada:", data);
+  } catch (error) {
+    console.error("Erro ao adicionar nova aba:", error);
+  }
+};
+const listarTabs = async () => {
+  try {
+    isLoading.value = true;
+    const token = localStorage.getItem("token");
+    const productId = localStorage.getItem("produtoParaDarNota");
     const response = await fetch(
-      `https://qualiotbackend.onrender.com/questions/get-by-category/${abaSelecionada}?details=false`,
+      `https://qualiotbackend.onrender.com/categorys/get-by-product/${productId}`,
       {
         method: "GET",
         headers: {
@@ -103,11 +96,58 @@ const buscarDadosDaAbaAtiva = async () => {
     );
 
     if (!response.ok) {
+      throw new Error("Erro ao buscar dados das abas");
+    }
+
+    const data = await response.json();
+    if (Array.isArray(data.category)) {
+      tabs.value = data.category.map((item) => ({
+        title: item.name,
+        _id: item._id,
+        inactive: false,
+      }));
+      categorias.value = Array(data.category.length).fill(0);
+    } else {
+      console.error("Estrutura inesperada: ", data);
+      throw new Error("Os dados recebidos não são um array");
+    }
+
+    const abaSelecionada = data.category[activeIndex.value]._id;
+    localStorage.setItem("abaSelecionada", abaSelecionada);
+  } catch (error) {
+    console.error(error);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+const atualizarTabAtual = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const abaSelecionada = tabs.value[activeIndex.value]?._id;
+    if (!abaSelecionada) {
+      throw new Error("Aba selecionada não encontrada");
+    }
+    localStorage.setItem("abaSelecionada", abaSelecionada);
+    console.log(abaSelecionada)
+    const response = await fetch(
+      `https://qualiotbackend.onrender.com/questions/get-by-category/${abaSelecionada}?details=false`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    if (!response.ok) {
       throw new Error("Erro ao buscar perguntas");
     }
 
     const data = await response.json();
-    console.log("Perguntas para aba ativa:", data);
+    const perguntaId = data.questionCategory.map((pergunta) => pergunta._id);
+    localStorage.setItem("perguntas", perguntaId);
+    console.log(localStorage.getItem("perguntas"));
   } catch (error) {
     console.error("Erro ao buscar dados da aba ativa:", error);
   }
@@ -116,17 +156,46 @@ const buscarDadosDaAbaAtiva = async () => {
 const setActiveTab = (index) => {
   activeIndex.value = index;
 };
-
-watch(activeIndex, () => {
-  buscarDadosDaAbaAtiva();
-});
-
-
-onMounted(() => {
-  listarTabs();
-});
 </script>
 
+<template>
+  <section class="regras-view">
+    <div class="abas">
+      <div v-if="isLoading" class="loading">
+        <div class="spinner"></div>
+      </div>
+
+      <div v-else>
+        <button
+        v-for="(tab, index) in tabs"
+          :key="index"
+          @click="setActiveTab(index)"
+          :class="{ active: activeIndex === index, inactive: tab.inactive }"
+          :disabled="tab.inactive"
+        >
+        {{ tab.title }}
+        <button v-if="activeIndex === index"
+            @click.stop="removerTab(index)"
+            class="btn-removerTab">X</button>
+        </button>
+      </div>
+      <button @click="adicionarTab" class="addAba">+</button>
+    </div>
+    <div class="conteudo">
+      <div class="grid-container">
+        <div class="formulario">
+          <transition name="fade" mode="out-in" class="name">
+            <div :key="activeIndex" class="tab-content">
+              <h2>{{ tabs[activeIndex]?.title }}</h2>
+              <FormVue :key="activeIndex" :tab-index="activeIndex" />
+            </div>
+          </transition>
+        </div>
+        <CardListarProdutos />
+      </div>
+    </div>
+  </section>
+</template>
 
 <style scoped>
 .regras-view {
@@ -138,8 +207,9 @@ onMounted(() => {
 }
 
 .abas {
+  align-items: center;
   display: flex;
-  justify-content: center;
+  justify-content: start;
   gap: 10px;
   margin-bottom: 20px;
   @media (max-width: 768px) {
@@ -149,7 +219,8 @@ onMounted(() => {
 }
 
 .abas button {
-  padding: 20px 25px;
+  padding: 10px 10px;
+  margin: 0 10px 0;
   background-color: #c7e9ff;
   border: none;
   border-radius: 5px;
@@ -163,72 +234,29 @@ onMounted(() => {
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
 }
 
-.abas button.inactive {
-  background-color: #bbb;
-  color: #666;
-  cursor: not-allowed;
-}
-
 .grid-container {
   display: flex;
-  gap: 20px;
   @media (max-width: 768px) {
     display: flex;
     flex-direction: column;
   }
 }
 
+.tab-content h2 {
+  text-align: start;
+  margin: 10px;
+  font-size: 50px;
+}
+
 .formulario {
-  
   width: 100%;
   background: white;
   border-radius: 15px;
-  padding: 20px;
-  background-color: #c7e9ff;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  background-color: transparent;
   
 }
 .name {
   text-align: center;
-}
-
-.controle {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin-top: 20px;
-}
-
-.closeAba {
-  background-color: #e74c3c !important;
-}
-.addAba {
-  background-color: #5dfff7 !important;
-}
-
-.btn-inativar {
-  background-color: #e74c3c;
-  color: white;
-  border: none;
-  padding: 10px;
-  border-radius: 5px;
-  font-weight: bold;
-}
-
-.btn-reativar {
-  background-color: #2ecc71;
-  color: white;
-  border: none;
-  padding: 10px;
-  border-radius: 5px;
-  font-weight: bold;
-}
-
-.resultado {
-  margin-top: 20px;
-  text-align: center;
-  font-size: 20px;
-  font-weight: bold;
 }
 
 .fade-enter-active,
@@ -254,5 +282,61 @@ onMounted(() => {
   .formulario {
     order: 2;
   }
+}
+
+.loading {
+  text-align: center;
+  color: #555;
+  font-size: 1.2em;
+}
+
+.spinner {
+  margin: 10px auto;
+  width: 50px;
+  height: 50px;
+  border: 5px solid #e1e4e8;
+  border-top: 5px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.abas .btn-removerTab {
+  background-color: #ff5061;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: .2s;
+}
+.abas .btn-removerTab:hover {
+  background-color: #ff0019;
+}
+
+.abas button.addAba {
+  transition: .2s;
+  background-color: #28a745;
+  color: white;
+  font-size: 20px;
+  border-radius: 20%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
+.abas button.addAba:hover {
+  background-color: #218838;
 }
 </style>

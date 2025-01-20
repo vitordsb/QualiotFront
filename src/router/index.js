@@ -1,11 +1,4 @@
 import { createRouter, createWebHashHistory } from "vue-router";
-import LoginView from "../views/pages/LoginView.vue";
-import RegisterView from "../views/pages/RegisterView.vue";
-import HomeView from "../views/HomeView.vue";
-import ProdutoView from "../views/ProdutoView.vue";
-import RegrasView from "../views/RegrasView.vue";
-import ComparacaoView from "../views/ComparacaoView.vue";
-import RelatorioView from "../views/RelatorioView.vue";
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -13,38 +6,43 @@ const router = createRouter({
     {
       path: "/",
       name: "login",
-      component: LoginView,
+      component: () => import("../views/pages/LoginView.vue"),
     },
     {
       path: "/register",
       name: "register",
-      component: RegisterView,
+      component: () => import("../views/pages/RegisterView.vue"),
     },
     {
       path: "/home",
       name: "home",
-      component: HomeView,
+      component: () => import("../views/HomeView.vue"),
       meta: { requiresAuth: true },
       children: [
         {
           path: "/home",
           name: "produtos",
-          component: ProdutoView,
+          component: () => import("../views/ProdutoView.vue"),
         },
         {
           path: "/regras",
           name: "regras",
-          component: RegrasView,
+          component: () => import("../views/RegrasView.vue"),
         },
         {
           path: "/comparacao",
           name: "comparacao",
-          component: ComparacaoView,
+          component: () => import("../views/ComparacaoView.vue"),
         },
         {
           path: "/relatorio",
           name: "relatorio",
-          component: RelatorioView,
+          component: () => import("../views/RelatorioView.vue"),
+        },
+        {
+          path: "/cadastrados",
+          name: "cadastrados",
+          component: () => import("../views/CadastradosView.vue"),
         }
       ],
     },

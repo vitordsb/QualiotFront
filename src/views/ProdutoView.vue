@@ -4,14 +4,12 @@
     <div class="abas">
       <button 
         :class="{ active: abaAtiva === 'cadastrar' }" 
-        @click="abaAtiva = 'cadastrar'"
-      >
+        @click="abaAtiva = 'cadastrar'">
         Cadastrar Produto
       </button>
       <button 
         :class="{ active: abaAtiva === 'listar' }" 
-        @click="listarProdutos"
-      >
+        @click="listarProdutos">
         Listar Produtos
       </button>
     </div>
