@@ -1,12 +1,9 @@
 <template>
     <section class="lista-cadastrados">
-      <!-- Exibição do loader enquanto os dados estão sendo carregados -->
       <div v-if="isLoading" class="loading">
         <div class="spinner"></div>
         <p>Carregando cadastros, por favor aguarde...</p>
       </div>
-  
-      <!-- Exibição da lista de cadastros -->
       <div v-else>
         <h2>Lista de Cadastros</h2>
         <ul class="cadastros">
@@ -39,27 +36,23 @@
           "Content-Type": "application/json",
         },
       });
-  
       if (!response.ok) {
         throw new Error("Erro ao buscar cadastrados");
       }
-  
       const data = await response.json();
-      cadastrados.value = data.user; // Atualiza os cadastrados com os dados retornados
+      cadastrados.value = data.user; retornados
     } catch (error) {
       console.error("Erro ao buscar cadastrados:", error);
     } finally {
       isLoading.value = false;
     }
   };
-  
   const alterarCadastro = async (index) => {
     try {
       const usuario = cadastrados.value[index];
       const novoNome = prompt("Insira o novo nome do usuário:", usuario.name);
       const novoEmail = prompt("Insira o novo email do usuário:", usuario.email);
       if (!novoNome || !novoEmail) return;
-  
       const response = await fetch(`https://qualiotbackend.onrender.com/users/${usuario._id}`, {
         method: "PUT",
         headers: {
@@ -70,15 +63,11 @@
           email: novoEmail,
         }),
       });
-  
       if (!response.ok) {
         throw new Error("Erro ao alterar cadastro");
       }
-  
-      // Atualiza os dados no estado local
       cadastrados.value[index].name = novoNome;
       cadastrados.value[index].email = novoEmail;
-  
       console.log("Cadastro alterado com sucesso");
     } catch (error) {
       console.error("Erro ao alterar cadastro:", error);

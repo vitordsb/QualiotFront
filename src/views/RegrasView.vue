@@ -8,8 +8,8 @@ const isLoading = ref(false);
 const activeIndex = ref(0);
 const categorias = ref([]);
 
-onMounted(() => {
-  listarTabs()
+onMounted(async () => {
+  await listarTabs()
 });
 
 watch(activeIndex,() => {
@@ -81,6 +81,7 @@ const adicionarTab = async () => {
 };
 const listarTabs = async () => {
   try {
+    
     isLoading.value = true;
     const token = localStorage.getItem("token");
     const productId = localStorage.getItem("produtoParaDarNota");
@@ -147,7 +148,6 @@ const atualizarTabAtual = async () => {
     const data = await response.json();
     const perguntaId = data.questionCategory.map((pergunta) => pergunta._id);
     localStorage.setItem("perguntas", perguntaId);
-    console.log(localStorage.getItem("perguntas"));
   } catch (error) {
     console.error("Erro ao buscar dados da aba ativa:", error);
   }

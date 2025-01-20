@@ -1,8 +1,6 @@
 <template>
   <section class="comparacao-view">
     <h2>Comparação de Produtos</h2>
-
-    <!-- Seleção de Produtos para Comparação -->
     <div class="selecionar-produtos">
       <div class="produto-selecao">
         <h3>Produto 1</h3>
@@ -22,8 +20,6 @@
         </select>
       </div>
     </div>
-
-    <!-- Exibição da Comparação -->
     <div v-if="produto1 && produto2" class="tabela-comparacao">
       <table>
         <thead>
@@ -42,8 +38,6 @@
         </tbody>
       </table>
     </div>
-
-    <!-- Mensagem caso não haja produtos suficientes -->
     <div v-else class="mensagem">
       <p>Por favor, selecione dois produtos para comparação.</p>
     </div>
@@ -53,7 +47,6 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 
-// Produtos cadastrados no localStorage
 const produtos = ref([]);
 const selectedProduto1 = ref(null);
 const selectedProduto2 = ref(null);
@@ -63,11 +56,9 @@ onMounted(() => {
   produtos.value = produtosSalvos;
 });
 
-// Computed para obter os produtos selecionados
 const produto1 = computed(() => produtos.value[selectedProduto1.value]);
 const produto2 = computed(() => produtos.value[selectedProduto2.value]);
 
-// Perguntas para exibição na tabela de comparação
 const perguntas = [
   "Identificação única",
   "Capacidade de atualização",

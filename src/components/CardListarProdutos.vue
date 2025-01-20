@@ -26,6 +26,7 @@ const produtos = ref([]);
 const isLoading = ref(false);
 const selectedProdutoIndex = ref(null);
 const backendURL = 'https://qualiotbackend.onrender.com/products';
+
 const listarProdutos = async () => {
   try {
     isLoading.value = true;

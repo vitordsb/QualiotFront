@@ -118,10 +118,11 @@ const cadastrarProduto = async () => {
       if (!response.ok) {
         throw new Error('Erro ao cadastrar produto');
       }
-
+      
       const data = await response.json();
       produtos.value.push(data);
       alert('Produto cadastrado com sucesso!');
+      localStorage.setItem("produto", JSON.stringify(produtos.value));
       produto.value = { nome: '', descricao: '' };
     } catch (error) {
       console.error('Erro ao cadastrar produto:', error);

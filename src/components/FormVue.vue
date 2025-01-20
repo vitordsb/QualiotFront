@@ -1,6 +1,5 @@
 <script setup>
-import { defineProps, ref, onMounted } from 'vue';
-import MediaCalculator from './MediaCalculator.vue';
+import { defineProps, ref, onMounted, watchEffect } from 'vue';
 
 onMounted(() => {
   buscarPerguntas();
@@ -10,6 +9,9 @@ const justificativa = ref('');
 const descricao = ref([]);
 const perguntas = ref([]);
 const isLoading = ref(true);
+const notas = ref([]);
+
+
 
 const props = defineProps({
   tabIndex: {
@@ -93,19 +95,83 @@ const buscarPerguntas = async () => {
     );
     const data = await response.json();
     const perguntaId = data.questionCategory.map((pergunta) => pergunta._id);
-    localStorage.setItem('perguntasId', perguntaId);
 
+    notas.value = data.questionCategory.map((pergunta) => pergunta.grade);
     perguntas.value = data.questionCategory.map((pergunta) => pergunta.title);
     descricao.value = data.questionCategory.map((pergunta) => pergunta.announced);
 
     localStorage.setItem('perguntas', perguntas.value);
     localStorage.setItem('descricao', descricao.value);
+    localStorage.setItem('perguntasId', perguntaId);
+    localStorage.setItem('notas', notas.value);
+
+    // Carrega a média da aba ativa
+    const media = localStorage.getItem(`media_tab_${props.tabIndex}`);
+    if (media) {
+      console.log(`Média carregada para tabIndex ${props.tabIndex}: ${media}`);
+    }
+
   } catch (error) {
     console.error('Erro ao buscar perguntas:', error);
   } finally {
     isLoading.value = false;
   }
 };
+const calcularMedia = async () => {
+  isLoading.value = true;
+  const token = localStorage.getItem('token');
+  const perguntasId = localStorage.getItem('perguntasId').split(',');
+
+  try {
+    let somaNotas = 0;
+    let totalPerguntas = 0;
+
+    for (let i = 0; i < perguntas.value.length; i++) {
+      // Verifica se a nota foi preenchida
+      if (notas.value[i] !== undefined && notas.value[i] !== null) {
+        // Atualiza a nota no backend
+        const response = await fetch(`https://qualiotbackend.onrender.com/questions/${perguntasId[i]}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            grade: notas.value[i],
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Erro ao atualizar nota da pergunta ${perguntas.value[i]}`);
+        }
+
+        somaNotas += parseFloat(notas.value[i]);
+        totalPerguntas++;
+      }
+    }
+
+    // Calcula a média e exibe
+    const media = totalPerguntas > 0 ? (somaNotas / totalPerguntas).toFixed(2) : 0;
+    console.log(`Média calculada para tabIndex ${props.tabIndex}: ${media}`);
+
+    // Salva no localStorage com uma chave única por tabIndex
+    localStorage.setItem(`media_tab_${props.tabIndex}`, media);
+
+  } catch (error) {
+    isLoading.value = false;
+    console.error('Erro ao calcular a média:', error);
+    alert('Erro ao calcular a média. Tente novamente.');
+  } finally {
+    isLoading.value = false;
+    location.reload();
+  }
+};
+const media = ref(Number(localStorage.getItem(`media_tab_${props.tabIndex}`)));
+
+watchEffect(() => {
+  media.value = Number(localStorage.getItem(`media_tab_${props.tabIndex}`));
+});
+
 </script>
 
 
@@ -125,7 +191,12 @@ const buscarPerguntas = async () => {
               <label :for="'pergunta' + index">{{ pergunta }}:</label>
               <p> {{ descricao[index] }}</p>
               <span>Nota:</span>
-              <input type="number" :id="'pergunta' + index" :name="'pergunta' + index" min="0" max="10" />
+              <input v-model.number="notas[index]" 
+              type="number" 
+              :id="'pergunta' + index" 
+              :name="'pergunta' + index" 
+              min="0" 
+              max="10" />
             </div>
             <span>Justificativa:</span>
             <textarea :name="justificativa + index" :id="'justificativa' + index" cols="30" rows="10" />
@@ -139,12 +210,19 @@ const buscarPerguntas = async () => {
         </button>
       </div>
       <div class="botoes">
-        <button type="submit" class="btn btn-primary">Enviar Respostas</button>
+        <button @click="calcularMedia" class="btn btn-primary">Calcular média</button>
         <button type="reset" class="btn btn-secondary">Limpar</button>
       </div>
     </template>
   </div>
-    <MediaCalculator/>
+    <div class="mediaCaluculate">
+        <div class="title">
+            <h1>Média das notas acima:</h1>
+        </div>
+        <div class="nota">
+            {{ media }}
+        </div>
+    </div>
 </template>
 
 
@@ -307,5 +385,25 @@ const buscarPerguntas = async () => {
 .btn-secondary:hover {
   background-color: #495057;
   transform: scale(1.05);
+}
+.mediaCaluculate {
+    width: 600px;
+    height: auto;
+    margin: 20px 0;
+    background-color: #e4e4e4;
+    padding: 20px;
+    border-radius: 20px;
+    justify-content: space-between;
+    display: flex;
+}
+
+.title {
+    h1 {
+        font-size: 30px;
+    }
+}
+.nota {
+    font-weight: bold;
+    font-size: 32px;
 }
 </style>
