@@ -264,13 +264,17 @@ watchEffect(() => {
 }
 
 .loading {
-  text-align: center;
   color: #555;
+  display: flex;
+  margin-right: auto ;
+  margin-left: auto;
+  flex-direction: column;
   font-size: 1.2em;
+  align-items: center;
 }
 
 .spinner {
-  margin: 10px auto;
+  display: flex;
   width: 50px;
   height: 50px;
   border: 5px solid #e1e4e8;
