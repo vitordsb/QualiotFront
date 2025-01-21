@@ -40,7 +40,7 @@
         throw new Error("Erro ao buscar cadastrados");
       }
       const data = await response.json();
-      cadastrados.value = data.user; retornados
+      cadastrados.value = data.user;
     } catch (error) {
       console.error("Erro ao buscar cadastrados:", error);
     } finally {
@@ -106,7 +106,6 @@
   <style scoped>
   .lista-cadastrados {
     padding: 20px;
-    background-color: #f8f9fa;
     border-radius: 10px;
   }
   .lista-cadastrados h2 {
@@ -144,15 +143,22 @@
   .cadastros {
     list-style-type: none;
     padding: 0;
+    justify-content: center;
+    gap: 20px;
+    display: flex;
     margin: 20px;
   }
   
   .cadastro-item {
-    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 20%;
+    background: #f1f1f1;
     padding: 40px;
     margin-bottom: 10px;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.521);
   }
   
   .cadastro-item h3 {

@@ -1,20 +1,21 @@
 <script setup>
 import { ref, onMounted, watch } from "vue";
 import FormVue from "@/components/FormVue.vue";
-import CardListarProdutos from "@/components/CardListarProdutos.vue";
 
 const tabs = ref([]);
 const isLoading = ref(false);
 const activeIndex = ref(0);
 const categorias = ref([]);
+const produtos = ref([]);
 
-onMounted(async () => {
-  await listarTabs()
+onMounted(() => {
+  listarTabs();
 });
 
-watch(activeIndex,() => {
+watch(activeIndex, () => {
   atualizarTabAtual();
 });
+
 const removerTab = async () => {
   try {
     const token = localStorage.getItem("token");
@@ -33,14 +34,14 @@ const removerTab = async () => {
       throw new Error("Erro ao remover aba");
     }
     tabs.value.splice(activeIndex.value, 1);
-    listarTabs();
+    await listarTabs();
     alert("Aba removida, vá para outra aba");
-    setActiveTab(0)
+    setActiveTab(0);
     console.log("Aba removida com sucesso");
   } catch (error) {
     console.error("Erro ao remover aba:", error);
   }
-}
+};
 
 const adicionarTab = async () => {
   try {
@@ -66,22 +67,22 @@ const adicionarTab = async () => {
       throw new Error("Erro ao criar nova aba");
     }
 
-    const data = response.json();
+    const data = await response.json();
     tabs.value.push({
       title: data.name,
       _id: data._id,
       inactive: false,
     });
     alert("Nova aba criada, precisa ir para ela!");
-    listarTabs();
+    await listarTabs();
     console.log("Nova categoria criada:", data);
   } catch (error) {
     console.error("Erro ao adicionar nova aba:", error);
   }
 };
+
 const listarTabs = async () => {
   try {
-    
     isLoading.value = true;
     const token = localStorage.getItem("token");
     const productId = localStorage.getItem("produtoParaDarNota");
@@ -113,8 +114,10 @@ const listarTabs = async () => {
       throw new Error("Os dados recebidos não são um array");
     }
 
-    const abaSelecionada = data.category[activeIndex.value]._id;
-    localStorage.setItem("abaSelecionada", abaSelecionada);
+    const abaSelecionada = data.category[activeIndex.value]?._id;
+    if (abaSelecionada) {
+      localStorage.setItem("abaSelecionada", abaSelecionada);
+    }
   } catch (error) {
     console.error(error);
   } finally {
@@ -130,7 +133,7 @@ const atualizarTabAtual = async () => {
       throw new Error("Aba selecionada não encontrada");
     }
     localStorage.setItem("abaSelecionada", abaSelecionada);
-    console.log(abaSelecionada)
+    console.log(abaSelecionada);
     const response = await fetch(
       `https://qualiotbackend.onrender.com/questions/get-by-category/${abaSelecionada}?details=false`,
       {
@@ -156,7 +159,10 @@ const atualizarTabAtual = async () => {
 const setActiveTab = (index) => {
   activeIndex.value = index;
 };
+
+
 </script>
+
 
 <template>
   <section class="regras-view">
@@ -167,16 +173,20 @@ const setActiveTab = (index) => {
 
       <div v-else>
         <button
-        v-for="(tab, index) in tabs"
+          v-for="(tab, index) in tabs"
           :key="index"
           @click="setActiveTab(index)"
           :class="{ active: activeIndex === index, inactive: tab.inactive }"
           :disabled="tab.inactive"
         >
-        {{ tab.title }}
-        <button v-if="activeIndex === index"
+          {{ tab.title }}
+          <button
+            v-if="activeIndex === index"
             @click.stop="removerTab(index)"
-            class="btn-removerTab">X</button>
+            class="btn-removerTab"
+          >
+            X
+          </button>
         </button>
       </div>
       <button @click="adicionarTab" class="addAba">+</button>
@@ -191,7 +201,6 @@ const setActiveTab = (index) => {
             </div>
           </transition>
         </div>
-        <CardListarProdutos />
       </div>
     </div>
   </section>
@@ -199,6 +208,9 @@ const setActiveTab = (index) => {
 
 <style scoped>
 .regras-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   padding: 20px;
   @media (max-width: 768px) {
     display: flex;
@@ -207,11 +219,12 @@ const setActiveTab = (index) => {
 }
 
 .abas {
-  align-items: center;
   display: flex;
-  justify-content: start;
+  align-items: center;
+  width: 100%;
+  justify-content: center;
   gap: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   @media (max-width: 768px) {
     display: flex;
     flex-direction: column;
@@ -219,22 +232,25 @@ const setActiveTab = (index) => {
 }
 
 .abas button {
-  padding: 10px 10px;
-  margin: 0 10px 0;
-  background-color: #c7e9ff;
   border: none;
-  border-radius: 5px;
-  font-weight: bold;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.518);
+  padding: 8px;
+  margin: 0 10px 0;
+  width: auto;
+  background-color: #c7e9ff;
+  border-radius: 10px;
   cursor: pointer;
+  font-size: 18px;
 }
 
 .abas button.active {
   background-color: #007bff;
   color: white;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.518);
 }
 
 .grid-container {
+  align-items: center;
   display: flex;
   @media (max-width: 768px) {
     display: flex;
@@ -243,8 +259,8 @@ const setActiveTab = (index) => {
 }
 
 .tab-content h2 {
-  text-align: start;
-  margin: 10px;
+  text-align: center;
+  margin: 20px;
   font-size: 50px;
 }
 
@@ -338,5 +354,30 @@ const setActiveTab = (index) => {
 
 .abas button.addAba:hover {
   background-color: #218838;
+}
+
+.loading {
+  text-align: center;
+  color: #555;
+  font-size: 1.2em;
+}
+
+.spinner {
+  margin: 10px auto;
+  width: 50px;
+  height: 50px;
+  border: 5px solid #e1e4e8;
+  border-top: 5px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

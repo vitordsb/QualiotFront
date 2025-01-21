@@ -129,6 +129,9 @@ const buscarPerguntas = async () => {
     localStorage.setItem('descricao', descricao.value);
     localStorage.setItem('perguntasId', perguntaId);
     localStorage.setItem('notas', notas.value);
+
+    console.log(data);
+
     const media = localStorage.getItem(`media_tab_${props.tabIndex}`);
     if (media) {
       console.log(`Média carregada para tabIndex ${props.tabIndex}: ${media}`);
@@ -235,7 +238,6 @@ watchEffect(() => {
         </button>
       </div>
     </template>
-  </div>
     <div class="mediaCaluculate">
         <div class="title">
             <h1>Média das notas acima:</h1>
@@ -244,6 +246,7 @@ watchEffect(() => {
             {{ media }}
         </div>
     </div>
+  </div>
 </template>
 
 
@@ -251,14 +254,13 @@ watchEffect(() => {
 .form {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 10px;
+  align-items: end;
+  padding: 20px;
   width: 100%;
-  max-width: 1400px;
+  max-width: 1500px;
   background-color: #ffffff;
-  border: 1px solid #e1e4e8;
-  border-radius: 15px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.318);
 }
 
 .loading {
@@ -287,7 +289,8 @@ watchEffect(() => {
 }
 
 .questionario {
-  padding: 10px;
+  display: flex;
+  justify-content: center;
   width: auto;
 }
 
@@ -295,7 +298,6 @@ watchEffect(() => {
   resize: none;
   width: 50%;
   height: 50px;
-  text-align: center;
   padding: 5px;
   border: none;
   border-radius: 8px;
@@ -304,25 +306,21 @@ watchEffect(() => {
   transition: box-shadow 0.3s ease;
 }
 
-.titulo h3 {
-  text-align: center;
-  font-size: 2.5em;
-  font-weight: bold;
-  color: #333;
-}
-.pergunta .sla {
-  width: 100%;
-  gap: 20px;
+.sla {
   align-items: center;
+  gap: 40px;
+  width: 100%;
   display: flex;
 }
 
 .sla p {
   font-size: 1em;
-  text-align: start;
-  width: auto;
+  text-align: justify;
+  width: 400px;
+  word-wrap: break-word;
 }
 .pergunta {
+  padding: 10px;
   width: 100%;
   justify-content: center;
   display: flex;
@@ -334,8 +332,9 @@ watchEffect(() => {
 .pergunta label {
   display: block;
   text-align: start;
-  width: 100%;
-  font-size: 1.1em;
+  width: 300px;
+  font-weight: bold;
+  font-size: 1.5em;
   color: #000000;
   margin-bottom: 5px;
 }
@@ -361,11 +360,11 @@ watchEffect(() => {
 }
 
 .btn {
-  padding: 10px 15px;
-  font-size: 1em;
+  padding: 10px 20px;
+  font-size: 1.2em;
   font-weight: bold;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.2s ease;
 }
@@ -398,12 +397,12 @@ watchEffect(() => {
   transform: scale(1.05);
 }
 .mediaCaluculate {
-    width: 600px;
+    width: 500px;
     height: auto;
-    margin: 20px 0;
-    background-color: #e4e4e4;
-    padding: 20px;
-    border-radius: 20px;
+    background-color: #007BFF;
+    color: white;
+    padding: 15px;
+    border-radius: 10px;
     justify-content: space-between;
     display: flex;
 }

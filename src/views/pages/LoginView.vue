@@ -71,6 +71,8 @@ const handleLogin = async () => {
       messageType.value = 'error';
       return;
     }
+
+    isLoading.value = false;
     
     const data = await response.json();
     const token = data.userLogin.token;
@@ -78,10 +80,11 @@ const handleLogin = async () => {
     
     localStorage.setItem('token', token);
     localStorage.setItem('name', name)
+
+    console.log(data);
     
     message.value = 'Login realizado com sucesso!';
     messageType.value = 'success';
-
     setTimeout(() => {
       router.push('/home');
       message.value = '';
