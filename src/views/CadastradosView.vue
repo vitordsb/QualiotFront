@@ -8,10 +8,12 @@
         <h2>Lista de Cadastros</h2>
         <ul class="cadastros">
           <li v-for="(cadastro, index) in cadastrados" :key="index" class="cadastro-item">
-            <h3>{{ cadastro.name }}</h3>
-            <p><strong>Email:</strong> {{ cadastro.email }}</p>
-            <p><strong>ID:</strong> {{ cadastro._id }}</p>
-            <p><strong>Senha:</strong> {{ cadastro.password }}</p>
+            <div class="infos">
+              <h3>{{ cadastro.name }}</h3>
+              <p><strong>Email:</strong> {{ cadastro.email }}</p>
+              <p><strong>ID:</strong> {{ cadastro._id }}</p>
+              <p><strong>Senha:</strong> {{ cadastro.password }}</p>
+            </div>
             <div class="botoes">
               <button @click="alterarCadastro(index)" class="btn-alterar">Alterar</button>
               <button @click="excluirCadastro(index)" class="btn-excluir">Excluir</button>
@@ -106,6 +108,11 @@
   <style scoped>
   .lista-cadastrados {
     padding: 20px;
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    height: 400px;
     border-radius: 10px;
   }
   .lista-cadastrados h2 {
@@ -146,21 +153,29 @@
     justify-content: center;
     gap: 20px;
     display: flex;
-    margin: 20px;
+    margin: 50px;
+  }
+  .infos {
+    display: flex;
+    flex-direction: column;
   }
   
   .cadastro-item {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    width: 20%;
+    width: auto;
+    cursor: pointer;
+    gap: 30px;
+    transition: calc(.2s);
     background: #f1f1f1;
-    padding: 40px;
-    margin-bottom: 10px;
+    padding: 20px;
     border-radius: 8px;
     box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.521);
   }
   
+  .cadastro-item:hover {
+    transform: scale(1.02);
+  }
   .cadastro-item h3 {
     margin: 0 0 5px;
     font-size: 2em;
@@ -171,6 +186,7 @@
   }
   
   .botoes {
+    flex-direction: column;
     display: flex;
     gap: 10px;
     margin-top: 10px;
@@ -179,7 +195,7 @@
   .btn-alterar {
     background-color: #007bff;
     color: white;
-    padding: 5px 10px;
+    padding: 10px 10px;
     border: none;
     border-radius: 5px;
     cursor: pointer;
@@ -192,7 +208,7 @@
   .btn-excluir {
     background-color: #ff5061;
     color: white;
-    padding: 5px 10px;
+    padding: 10px 10px;
     border: none;
     border-radius: 5px;
     cursor: pointer;

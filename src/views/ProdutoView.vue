@@ -183,9 +183,11 @@ const capitalizeFirstLetter = (string) => {
 <style scoped>
 
 .produto-cadastro {
+  display: flex;
+  flex-direction: column;
   border-radius: 10px;
-  max-width: 1000px;
-  margin: 120px auto;
+  max-width: 800px;
+  margin: 100px auto;
 }
 
 .abas {
@@ -222,8 +224,8 @@ const capitalizeFirstLetter = (string) => {
 
 .form-container,
 .list-container {
-    background-color: #F0F2F5;
-    text-align: center;
+  background-color: #F0F2F5;
+  text-align: center;
   position: absolute;
   top: 0;
   border-radius: 10px;
@@ -240,7 +242,6 @@ const capitalizeFirstLetter = (string) => {
 }
 
 .form-group label {
-
   font-weight: bold;
   font-size: 22px;
 }
@@ -262,7 +263,7 @@ const capitalizeFirstLetter = (string) => {
   color: white;
   border: none;
   cursor: pointer;
-  font-size: 18px;
+  font-size: 20px;
   border-radius: 8px;
   display: flex;
   font-weight: bold;
@@ -277,9 +278,9 @@ const capitalizeFirstLetter = (string) => {
 }
 
 .produtos-list {
-text-align: center;
+  margin-top: 20px;
+  text-align: start;
   display: flex;
-  margin: 10px;
   flex-direction: column;
   gap: 20px;
   @media (max-width: 700px){
@@ -288,10 +289,9 @@ text-align: center;
 }
 
 .produto-card {
-  padding: 50px;
-  background-color: #f9f9f9;
+  border: 1px solid #ccc;
+  padding: 10px;
   border-radius: 8px;
-  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
   @media (max-width: 700px){
       padding: 10px;
       margin-top: 30px;

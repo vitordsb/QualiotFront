@@ -1,8 +1,12 @@
 <script setup>
-import { defineProps, ref, onMounted, watchEffect } from 'vue';
+import { defineProps, ref, onMounted } from 'vue';
 
 onMounted(() => {
   buscarPerguntas();
+  const storedMedia = localStorage.getItem(`media_tab_${props.tabIndex}`);
+  if (storedMedia !== null) {
+    media.value = Number(storedMedia);
+  }
 });
 
 const justificativa = ref('');
@@ -11,6 +15,7 @@ const perguntas = ref([]);
 const isLoading = ref(true);
 const notas = ref([]);
 const pesos = ref([]);
+const media = ref(0);
 
 const distribuirPesos = () => {
   const numPerguntas = perguntas.value.length;
@@ -131,7 +136,6 @@ const buscarPerguntas = async () => {
     localStorage.setItem('notas', notas.value);
 
     console.log(data);
-
     const media = localStorage.getItem(`media_tab_${props.tabIndex}`);
     if (media) {
       console.log(`Média carregada para tabIndex ${props.tabIndex}: ${media}`);
@@ -176,25 +180,20 @@ const calcularMedia = async () => {
         somaPesos += peso;
       }
     }
-    const media = somaPesos > 0 ? (somaPonderada / somaPesos).toFixed(2) : 0;
-    console.log(`Média ponderada calculada para tabIndex ${props.tabIndex}: ${media}`);
 
-    localStorage.setItem(`media_tab_${props.tabIndex}`, media);
-    location.reload();
+    const resultadoMedia = somaPesos > 0 ? (somaPonderada / somaPesos).toFixed(2) : 0;
+    console.log(`Média ponderada calculada para tabIndex ${props.tabIndex}: ${resultadoMedia}`);
+
+    // Atualiza a variável reativa e persiste a média no localStorage
+    media.value = Number(resultadoMedia);
+    localStorage.setItem(`media_tab_${props.tabIndex}`, resultadoMedia);
   } catch (error) {
-    isLoading.value = false;
     console.error('Erro ao calcular a média ponderada:', error);
     alert('Erro ao calcular a média. Tente novamente.');
   } finally {
     isLoading.value = false;
   }
 };
-const media = ref(Number(localStorage.getItem(`media_tab_${props.tabIndex}`)));
-
-watchEffect(() => {
-  media.value = Number(localStorage.getItem(`media_tab_${props.tabIndex}`));
-});
-
 </script>
 
 
@@ -401,7 +400,8 @@ watchEffect(() => {
   transform: scale(1.05);
 }
 .mediaCaluculate {
-    width: 500px;
+    width: auto;
+    gap: 20px;
     height: auto;
     background-color: #007BFF;
     color: white;

@@ -31,9 +31,10 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { RouterLink } from 'vue-router';
+import { auth, clearUser } from './states/auth';
 
 const router = useRouter();
 const route = useRoute();
@@ -42,16 +43,17 @@ const dropdownVisible = ref(false);
 const menuVisible = ref(false);
 const isLogin = ref(false);
 const isRegister = ref(false);
-const userName = localStorage.getItem('name') || "Recarregue a página";
+const userName = computed(() => auth.userName);
 
 watch(route, (newRoute) => {
   isLogin.value = newRoute.path === '/';
   isRegister.value = newRoute.path === '/register';
 });
 
-const logout = () => {
+function logout() {
+  clearUser();
   router.push('/');
-};
+}
 
 function toggleDropdown() {
   dropdownVisible.value = !dropdownVisible.value;
@@ -64,7 +66,7 @@ function toggleMenu() {
 
 <style scoped>
 .header {
-  background-color: #F0F2F5;
+  background-color: transparent;
   padding: 10px 20px;
   width: 100%;
   display: flex;
@@ -90,6 +92,8 @@ function toggleMenu() {
   background-color: #bae2fc;
   padding: 15px;
   border-radius: 10px;
+  border: 2px solid #0f0f0f;
+  cursor: pointer;
   text-decoration: none;
   font-size: 18px;
   font-weight: bold;

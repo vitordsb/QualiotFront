@@ -43,6 +43,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { RouterLink } from 'vue-router';
+import { setUser } from '@/components/states/auth';
 
 const isLoading = ref(false);
 const router = useRouter();
@@ -82,6 +83,7 @@ const handleLogin = async () => {
     localStorage.setItem('name', name)
 
     console.log(data);
+    setUser(name)
     
     message.value = 'Login realizado com sucesso!';
     messageType.value = 'success';
