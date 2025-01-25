@@ -18,11 +18,9 @@
 import { ref, onMounted } from "vue";
 import * as XLSX from "xlsx";
 
-// Estados
 const relatorio = ref({});
 const isLoading = ref(true);
 
-// Dados simulados ou carregados do localStorage
 const carregarRelatorioLocal = () => {
   try {
     isLoading.value = true;
@@ -85,26 +83,21 @@ const carregarRelatorioLocal = () => {
   }
 };
 
-// Gera e exporta a planilha com os dados do relatório
 const gerarRelatorio = () => {
   try {
     const dados = relatorio.value;
 
-    // Estrutura dos dados para a planilha
     const planilha = [];
 
-    // Adiciona dados do usuário
     planilha.push(["Usuário"]);
     planilha.push(["Nome", dados.usuario.name]);
     planilha.push(["Email", dados.usuario.email]);
 
-    // Adiciona dados do produto
     planilha.push([]);
     planilha.push(["Produto"]);
     planilha.push(["Nome", dados.produto.name]);
     planilha.push(["Descrição", dados.produto.description]);
 
-    // Adiciona categorias, perguntas, notas e justificativas
     dados.categorias.forEach((categoria) => {
       planilha.push([]);
       planilha.push([`Categoria: ${categoria.name}`]);
@@ -119,17 +112,12 @@ const gerarRelatorio = () => {
       });
     });
 
-    // Adiciona a média final
     planilha.push([]);
     planilha.push(["Média Final"]);
     planilha.push(["", dados.mediaFinal]);
-
-    // Converte os dados para uma planilha XLSX
     const ws = XLSX.utils.aoa_to_sheet(planilha);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Relatório Geral");
-
-    // Exporta o arquivo XLSX
     XLSX.writeFile(wb, "Relatorio_Geral.xlsx");
     alert("Relatório exportado com sucesso!");
   } catch (error) {
@@ -138,7 +126,6 @@ const gerarRelatorio = () => {
   }
 };
 
-// Carrega os dados ao montar o componente
 onMounted(() => {
   carregarRelatorioLocal();
 });

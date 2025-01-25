@@ -1,7 +1,7 @@
 <template>
   <header v-if="!isLogin && !isRegister" class="header">
     <div class="container">
-      <!-- Dropdown para usuário -->
+      
       <div class="dropdown">
         <button class="dropdown-btn" @click="toggleDropdown">
           <img src="/src/assets/logo/qualiot.png" alt="User Icon">
@@ -10,17 +10,39 @@
         <div class="dropdown-content" v-if="dropdownVisible">
           <a class="logout" @click="logout">Sair</a>
         </div>
-      </div>
+      </div> <
 
-      <!-- Links centralizados -->
       <nav class="links" :class="{ active: menuVisible }">
-        <RouterLink to="/cadastrados">Ver cadastrados</RouterLink>
-        <RouterLink to="/home">Cadastrar produtos</RouterLink>
-        <RouterLink to="/regras">Fazer avaliação</RouterLink>
-        <RouterLink to="/relatorio">Solicitar relatório</RouterLink>
+        <RouterLink 
+          to="/home" 
+          :class="{ active: activeLink === '/home' }" 
+          @click.native="setActiveLink('/home')"
+        >
+          Cadastrar produtos
+        </RouterLink>
+        <RouterLink 
+          to="/regras" 
+          :class="{ active: activeLink === '/regras' }" 
+          @click.native="setActiveLink('/regras')"
+        >
+          Fazer avaliação
+        </RouterLink>
+        <RouterLink 
+          to="/relatorio" 
+          :class="{ active: activeLink === '/relatorio' }" 
+          @click.native="setActiveLink('/relatorio')"
+        >
+          Solicitar relatório
+        </RouterLink>
+        <RouterLink 
+          to="/cadastrados" 
+          :class="{ active: activeLink === '/cadastrados' }" 
+          @click.native="setActiveLink('/cadastrados')"
+        >
+          Ver cadastrados
+        </RouterLink>
       </nav>
 
-      <!-- Botão Hamburger -->
       <button class="hamburger" @click="toggleMenu">
         <span></span>
         <span></span>
@@ -43,11 +65,13 @@ const dropdownVisible = ref(false);
 const menuVisible = ref(false);
 const isLogin = ref(false);
 const isRegister = ref(false);
+const activeLink = ref(route.path);
 const userName = computed(() => auth.userName);
 
 watch(route, (newRoute) => {
   isLogin.value = newRoute.path === '/';
   isRegister.value = newRoute.path === '/register';
+  activeLink.value = newRoute.path;
 });
 
 function logout() {
@@ -61,6 +85,10 @@ function toggleDropdown() {
 
 function toggleMenu() {
   menuVisible.value = !menuVisible.value;
+}
+
+function setActiveLink(path) {
+  activeLink.value = path;
 }
 </script>
 
@@ -88,11 +116,16 @@ function toggleMenu() {
   gap: 20px;
 }
 
+.links a.active {
+  background-color: #3389CE;
+  color: #ffffff;
+}
+
 .links a {
   background-color: #bae2fc;
   padding: 15px;
+  box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.53);
   border-radius: 10px;
-  border: 2px solid #0f0f0f;
   cursor: pointer;
   text-decoration: none;
   font-size: 18px;

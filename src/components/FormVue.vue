@@ -1,12 +1,11 @@
 <script setup>
 import { defineProps, ref, onMounted } from 'vue';
 
-onMounted(() => {
-  buscarPerguntas();
-  const storedMedia = localStorage.getItem(`media_tab_${props.tabIndex}`);
-  if (storedMedia !== null) {
-    media.value = Number(storedMedia);
-  }
+const props = defineProps({
+  tabIndex: {
+    type: Number,
+    required: true,
+  },
 });
 
 const justificativa = ref('');
@@ -16,6 +15,10 @@ const isLoading = ref(true);
 const notas = ref([]);
 const pesos = ref([]);
 const media = ref(0);
+const finalGrade = ref(0);
+const proeficiencia = ref('não avaliado');
+
+proeficiencia.value = 'não avaliado';
 
 const distribuirPesos = () => {
   const numPerguntas = perguntas.value.length;
@@ -34,27 +37,25 @@ const distribuirPesos = () => {
       break;
     case 5:
       pesos.value = [4, 3, 3, 2, 2];
-      break;
+      break; 
     default:
-      pesos.value = [];
+      const basePeso = 2;
+      pesos.value = Array(numPerguntas).fill(basePeso);
       break;
   }
 };
-
-
-
-const props = defineProps({
-  tabIndex: {
-    type: Number,
-    required: true,
-  },
-});
-
 const adicionarPergunta = async () => {
   try {
     isLoading.value = true;
     const tituloPergunta = prompt('Insira o nome da pergunta:');
-    const descricaoPergunta = prompt('Insira a descricao da pergunta:');
+    const descricaoPergunta = prompt('Insira a descrição da pergunta:');
+
+    if (!tituloPergunta || !descricaoPergunta) {
+      alert('Título e descrição são obrigatórios.');
+      isLoading.value = false;
+      return;
+    }
+
     const token = localStorage.getItem('token');
     const response = await fetch('https://qualiotbackend.onrender.com/questions', {
       method: 'POST',
@@ -68,21 +69,33 @@ const adicionarPergunta = async () => {
         _idCategory: localStorage.getItem('abaSelecionada'),
       }),
     });
-    perguntas.value.push(perguntas);
+
+    if (!response.ok) {
+      throw new Error('Erro ao cadastrar pergunta.');
+    }
+
     const data = await response.json();
-    alert('Pergunta cadastrada');
+    alert('Pergunta cadastrada com sucesso!');
     console.log('Pergunta cadastrada com sucesso:', data);
-    buscarPerguntas()
+    buscarPerguntas();
   } catch (error) {
-    isLoading.value = false;
     console.error('Erro ao cadastrar pergunta:', error);
+    alert('Erro ao cadastrar pergunta. Tente novamente.');
+  } finally {
+    isLoading.value = false;
   }
 }
 
 const removerPergunta = async (index) => {
   try {
     isLoading.value = true;
-    const perguntaId = localStorage.getItem('perguntasId').split(',')[index];
+    const perguntasId = localStorage.getItem(`perguntasId_tab_${props.tabIndex}`);
+    if (!perguntasId) {
+      throw new Error('Nenhum ID de pergunta encontrado.');
+    }
+    const perguntasIdArray = perguntasId.split(',');
+    const perguntaId = perguntasIdArray[index];
+
     const token = localStorage.getItem('token');
     const response = await fetch(`https://qualiotbackend.onrender.com/questions/${perguntaId}`, {
       method: 'DELETE',
@@ -92,19 +105,30 @@ const removerPergunta = async (index) => {
       },
     });
 
-    if (response.ok) {
-      perguntas.value.splice(index, 1);
-      descricao.value.splice(index, 1);
-      const perguntasId = localStorage.getItem('perguntasId').split(',');
-      perguntasId.splice(index, 1);
-      localStorage.setItem('perguntasId', perguntasId.join(','));
+    if (!response.ok) {
+      throw new Error('Erro ao remover pergunta.');
     }
-    buscarPerguntas()
-    const data = await response.json();
-    console.log('Pergunta removida com sucesso:', data);
+
+    perguntas.value.splice(index, 1);
+    descricao.value.splice(index, 1);
+    notas.value.splice(index, 1);
+    pesos.value.splice(index, 1);
+
+    perguntasIdArray.splice(index, 1);
+    localStorage.setItem(`perguntasId_tab_${props.tabIndex}`, perguntasIdArray.join(','));
+    localStorage.setItem(`perguntas_tab_${props.tabIndex}`, perguntas.value);
+    localStorage.setItem(`descricao_tab_${props.tabIndex}`, descricao.value);
+    localStorage.setItem(`notas_tab_${props.tabIndex}`, notas.value);
+    localStorage.setItem(`pesos_tab_${props.tabIndex}`, pesos.value);
+
+    alert('Pergunta removida com sucesso!');
+    console.log('Pergunta removida com sucesso:', await response.json());
+    computeFinalGrade();
   } catch (error) {
-    isLoading.value = false;
     console.error('Erro ao remover pergunta:', error);
+    alert('Erro ao remover pergunta. Tente novamente.');
+  } finally {
+    isLoading.value = false;
   }
 };
 
@@ -113,6 +137,7 @@ const buscarPerguntas = async () => {
     isLoading.value = true;
     const token = localStorage.getItem('token');
     const abaSelecionada = localStorage.getItem('abaSelecionada');
+
     const response = await fetch(
       `https://qualiotbackend.onrender.com/questions/get-by-category/${abaSelecionada}?details=false`,
       {
@@ -123,6 +148,11 @@ const buscarPerguntas = async () => {
         },
       }
     );
+
+    if (!response.ok) {
+      throw new Error('Erro ao buscar perguntas.');
+    }
+
     const data = await response.json();
     const perguntaId = data.questionCategory.map((pergunta) => pergunta._id);
 
@@ -130,37 +160,43 @@ const buscarPerguntas = async () => {
     perguntas.value = data.questionCategory.map((pergunta) => pergunta.title);
     descricao.value = data.questionCategory.map((pergunta) => pergunta.announced);
 
-    localStorage.setItem('perguntas', perguntas.value);
-    localStorage.setItem('descricao', descricao.value);
-    localStorage.setItem('perguntasId', perguntaId);
-    localStorage.setItem('notas', notas.value);
+    distribuirPesos();
+
+    localStorage.setItem(`perguntas_tab_${props.tabIndex}`, perguntas.value);
+    localStorage.setItem(`descricao_tab_${props.tabIndex}`, descricao.value);
+    localStorage.setItem(`perguntasId_tab_${props.tabIndex}`, perguntaId.join(','));
+    localStorage.setItem(`notas_tab_${props.tabIndex}`, notas.value);
+    localStorage.setItem(`pesos_tab_${props.tabIndex}`, pesos.value);
 
     console.log(data);
-    const media = localStorage.getItem(`media_tab_${props.tabIndex}`);
-    if (media) {
-      console.log(`Média carregada para tabIndex ${props.tabIndex}: ${media}`);
-    }
-
   } catch (error) {
     console.error('Erro ao buscar perguntas:', error);
+    alert('Erro ao buscar perguntas. Tente novamente.');
   } finally {
     isLoading.value = false;
+    computeFinalGrade();
   }
 };
-const calcularMedia = async () => {
+
+const calcularMediaAba = async () => {
   isLoading.value = true;
   const token = localStorage.getItem('token');
-  const perguntasId = localStorage.getItem('perguntasId').split(',');
+  const perguntasId = localStorage.getItem(`perguntasId_tab_${props.tabIndex}`);
+  if (!perguntasId) {
+    alert('Nenhuma pergunta encontrada para esta aba.');
+    isLoading.value = false;
+    return;
+  }
+
+  const perguntasIdArray = perguntasId.split(',');
 
   try {
     let somaPesos = 0;
     let somaPonderada = 0;
 
-    distribuirPesos();
-
     for (let i = 0; i < perguntas.value.length; i++) {
       if (notas.value[i] !== undefined && notas.value[i] !== null) {
-        const response = await fetch(`https://qualiotbackend.onrender.com/questions/${perguntasId[i]}`, {
+        const response = await fetch(`https://qualiotbackend.onrender.com/questions/${perguntasIdArray[i]}`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
@@ -183,8 +219,6 @@ const calcularMedia = async () => {
 
     const resultadoMedia = somaPesos > 0 ? (somaPonderada / somaPesos).toFixed(2) : 0;
     console.log(`Média ponderada calculada para tabIndex ${props.tabIndex}: ${resultadoMedia}`);
-
-    // Atualiza a variável reativa e persiste a média no localStorage
     media.value = Number(resultadoMedia);
     localStorage.setItem(`media_tab_${props.tabIndex}`, resultadoMedia);
   } catch (error) {
@@ -192,12 +226,47 @@ const calcularMedia = async () => {
     alert('Erro ao calcular a média. Tente novamente.');
   } finally {
     isLoading.value = false;
+    computeFinalGrade();
   }
 };
+
+const computeFinalGrade = () => {
+  let somaMedias = 0;
+  let contadorMedias = 0;
+
+  for (let key in localStorage) {
+    if (key.startsWith('media_tab_')) {
+      const mediaAba = parseFloat(localStorage.getItem(key)) || 0;
+      somaMedias += mediaAba;
+      contadorMedias += 1;
+    }
+  }
+
+  finalGrade.value = contadorMedias > 0 ? (somaMedias / contadorMedias).toFixed(2) : 0;
+  console.log(`Média final aritmética simples: ${finalGrade.value}`);
+
+  if (finalGrade.value < 5) {
+    proeficiencia.value = 'baixo';
+  } else if (finalGrade.value <= 8) {
+    proeficiencia.value = 'medio';
+  } else {
+    proeficiencia.value = 'alto';
+  }
+
+  localStorage.setItem('finalGrade', finalGrade.value);
+};
+
+onMounted(() => {
+  buscarPerguntas();
+  const storedMedia = localStorage.getItem(`media_tab_${props.tabIndex}`);
+  if (storedMedia !== null) {
+    media.value = Number(storedMedia);
+  }
+  computeFinalGrade();
+});
 </script>
 
-
-<template>
+<template>  
   <div class="form">
     <template v-if="isLoading">
       <div class="loading">
@@ -207,21 +276,27 @@ const calcularMedia = async () => {
     </template>
     <template v-else>
       <div class="questionario">
-        <form action="">
+        <form @submit.prevent>
           <div class="pergunta" v-for="(pergunta, index) in perguntas" :key="index">
             <div class="sla">
               <label :for="'pergunta' + index">{{ pergunta }}:</label>
               <p> {{ descricao[index] }}</p>
               <span>Nota:</span>
               <input v-model.number="notas[index]" 
-              type="number" 
-              :id="'pergunta' + index" 
-              :name="'pergunta' + index" 
-              min="0" 
-              max="10" />
+                type="number" 
+                :id="'pergunta' + index" 
+                :name="'pergunta' + index" 
+                min="0" 
+                max="10" />
             </div>
             <span>Justificativa:</span>
-            <textarea :name="justificativa + index" :id="'justificativa' + index" cols="30" rows="10" />
+            <textarea 
+              v-model="justificativa" 
+              :name="'justificativa' + index" 
+              :id="'justificativa' + index" 
+              cols="30" 
+              rows="3">
+            </textarea>
             <button @click.prevent="removerPergunta(index)" class="btn btn-remover">Excluir</button>
           </div>
         </form>
@@ -232,24 +307,73 @@ const calcularMedia = async () => {
         </button>
       </div>
       <div class="botoes">
-        <button @click="calcularMedia" class="btn btn-primary">
+        <button @click="calcularMediaAba" class="btn btn-primary">
           Calcular média
         </button>
       </div>
     </template>
-    <div class="mediaCaluculate">
+    <div class="calculos">
+      <div class="mediaCalculate">
         <div class="title">
-            <h1>Média das notas acima:</h1>
+          <h1>Nota da categoria:</h1>
         </div>
         <div class="nota">
-            {{ media }}
+          {{ media }}
         </div>
+      </div>
+      <div class="mediaCalculateFinal">
+        <div class="title">
+          <h1>Média Final:</h1>
+        </div>
+        <div class="nota">
+          {{ finalGrade }}
+        </div>
+      </div>
+    </div>
+    <div class="proeficientContainer" :class="proeficiencia">
+      <div class="title">
+        <h1>Nível de Proeficiência:</h1>
+      </div>
+      <div class="nota">
+        {{ proeficiencia.charAt(0).toUpperCase() + proeficiencia.slice(1) }}
+      </div>
     </div>
   </div>
 </template>
 
-
 <style scoped>
+.calculos {
+  display: flex;
+  margin-top: 10px;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.proeficientContainer {
+  width: 100%;
+  margin-top: 10px;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  color: white;
+}
+
+.proeficientContainer.baixo {
+  color: #dc3545;
+}
+
+.proeficientContainer.medio {
+  color: #ffc107; 
+  color: black; 
+}
+
+.proeficientContainer.alto {
+  color: #28a745;
+}
+
 .form {
   display: flex;
   flex-direction: column;
@@ -300,7 +424,7 @@ const calcularMedia = async () => {
 .pergunta textarea {
   resize: none;
   width: 50%;
-  height: 50px;
+  height: 60px;
   padding: 5px;
   border: none;
   border-radius: 8px;
@@ -322,6 +446,7 @@ const calcularMedia = async () => {
   width: 400px;
   word-wrap: break-word;
 }
+
 .pergunta {
   padding: 10px;
   width: 100%;
@@ -376,10 +501,12 @@ const calcularMedia = async () => {
   background-color: #dc3545;
   color: white;
 }
+
 .btn-adicionar {
   background-color: #28a745;
   color: white;
 }
+
 .btn-adicionar:hover {
   background-color: rgb(30, 126, 52);
   transform: scale(1.02);
@@ -399,25 +526,30 @@ const calcularMedia = async () => {
   background-color: #0056b3;
   transform: scale(1.05);
 }
-.mediaCaluculate {
-    width: auto;
-    gap: 20px;
-    height: auto;
-    background-color: #007BFF;
-    color: white;
-    padding: 15px;
-    border-radius: 10px;
-    justify-content: space-between;
-    display: flex;
+
+.mediaCalculate, .mediaCalculateFinal {
+  width: auto;
+  gap: 20px;
+  height: auto;
+  color: #007BFF;
+  align-items: center;
+  padding: 10px;
+  border-radius: 10px;
+  display: flex;
+  margin-top: 10px;
 }
 
-.title {
-    h1 {
-        font-size: 30px;
-    }
+.mediaCalculateFinal {
+  background-color: #6c757d; 
+  color: white;
 }
+
+.title h1 {
+  font-size: 30px;
+}
+
 .nota {
-    font-weight: bold;
-    font-size: 32px;
+  font-weight: bold;
+  font-size: 32px;
 }
 </style>

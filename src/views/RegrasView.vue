@@ -8,15 +8,15 @@ const activeIndex = ref(0);
 const categorias = ref([]);
 
 onMounted(() => {
-  listarTabs();
-});
-
+  listarTabs(); 
+})
 watch(activeIndex, () => {
   atualizarTabAtual();
 });
 
 const removerTab = async () => {
-  try {_
+
+  try {
     const token = localStorage.getItem("token");
     const abaSelecionada = tabs.value[activeIndex.value]?._id;
     const response = await fetch(
