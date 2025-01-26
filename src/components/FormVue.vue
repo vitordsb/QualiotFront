@@ -18,8 +18,10 @@ const media = ref(0);
 const finalGrade = ref(0);
 const proeficiencia = ref('não avaliado');
 
+// Definir a proeficiência inicial
 proeficiencia.value = 'não avaliado';
 
+// Função para distribuir pesos
 const distribuirPesos = () => {
   const numPerguntas = perguntas.value.length;
   switch (numPerguntas) {
@@ -39,11 +41,14 @@ const distribuirPesos = () => {
       pesos.value = [4, 3, 3, 2, 2];
       break; 
     default:
+      // Distribuir pesos proporcionalmente se houver mais de 5 perguntas
       const basePeso = 2;
       pesos.value = Array(numPerguntas).fill(basePeso);
       break;
   }
 };
+
+// Funções para adicionar, remover e buscar perguntas
 const adicionarPergunta = async () => {
   try {
     isLoading.value = true;
@@ -109,11 +114,13 @@ const removerPergunta = async (index) => {
       throw new Error('Erro ao remover pergunta.');
     }
 
+    // Remover a pergunta localmente
     perguntas.value.splice(index, 1);
     descricao.value.splice(index, 1);
     notas.value.splice(index, 1);
     pesos.value.splice(index, 1);
 
+    // Atualizar o localStorage
     perguntasIdArray.splice(index, 1);
     localStorage.setItem(`perguntasId_tab_${props.tabIndex}`, perguntasIdArray.join(','));
     localStorage.setItem(`perguntas_tab_${props.tabIndex}`, perguntas.value);
@@ -160,6 +167,7 @@ const buscarPerguntas = async () => {
     perguntas.value = data.questionCategory.map((pergunta) => pergunta.title);
     descricao.value = data.questionCategory.map((pergunta) => pergunta.announced);
 
+    // Distribuir pesos com base no número de perguntas
     distribuirPesos();
 
     localStorage.setItem(`perguntas_tab_${props.tabIndex}`, perguntas.value);
@@ -178,6 +186,7 @@ const buscarPerguntas = async () => {
   }
 };
 
+// Função para calcular a média ponderada de uma aba
 const calcularMediaAba = async () => {
   isLoading.value = true;
   const token = localStorage.getItem('token');
@@ -230,10 +239,12 @@ const calcularMediaAba = async () => {
   }
 };
 
+// Função para calcular a média final e determinar a proeficiência
 const computeFinalGrade = () => {
   let somaMedias = 0;
   let contadorMedias = 0;
 
+  // Iterar sobre todas as abas armazenadas no localStorage
   for (let key in localStorage) {
     if (key.startsWith('media_tab_')) {
       const mediaAba = parseFloat(localStorage.getItem(key)) || 0;
@@ -245,6 +256,7 @@ const computeFinalGrade = () => {
   finalGrade.value = contadorMedias > 0 ? (somaMedias / contadorMedias).toFixed(2) : 0;
   console.log(`Média final aritmética simples: ${finalGrade.value}`);
 
+  // Determinar o nível de proeficiência com base na média final
   if (finalGrade.value < 5) {
     proeficiencia.value = 'baixo';
   } else if (finalGrade.value <= 8) {
@@ -253,6 +265,7 @@ const computeFinalGrade = () => {
     proeficiencia.value = 'alto';
   }
 
+  // Atualizar o localStorage com a média final
   localStorage.setItem('finalGrade', finalGrade.value);
 };
 

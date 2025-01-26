@@ -10,7 +10,7 @@
         <div class="dropdown-content" v-if="dropdownVisible">
           <a class="logout" @click="logout">Sair</a>
         </div>
-      </div> <
+      </div> 
 
       <nav class="links" :class="{ active: menuVisible }">
         <RouterLink 
