@@ -42,7 +42,7 @@
       <p :class="['message', messageType]" v-if="message">{{ message }}</p>
       <div v-if="isLoading" class="spinner"></div>
     </div>
-    <img src="/src/assets/logo/qualiot.png" alt="">
+    <img src="/public/assets/logo/qualiot.png" alt="">
   </div>
 </Transition>
 </template>

@@ -4,7 +4,7 @@
       
       <div class="dropdown">
         <button class="dropdown-btn" @click="toggleDropdown">
-          <img src="/src/assets/logo/qualiot.png" alt="User Icon">
+          <img src="/public/assets/logo/qualiot.png" alt="User Icon">
           <span>Bem vindo, {{ userName }}!</span>
         </button>
         <div class="dropdown-content" v-if="dropdownVisible">
@@ -94,19 +94,18 @@ function setActiveLink(path) {
 
 <style scoped>
 .header {
-  background-color: transparent;
   padding: 10px 20px;
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   position: relative;
 }
 
 .container {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: space-around;
   width: 100%;
   position: relative;
 }

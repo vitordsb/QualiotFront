@@ -112,7 +112,7 @@
     width: 100%;
     justify-content: center;
     align-items: center;
-    height: 400px;
+    height: auto;
     border-radius: 10px;
   }
   .lista-cadastrados h2 {
@@ -150,9 +150,9 @@
   .cadastros {
     list-style-type: none;
     padding: 0;
-    justify-content: center;
+    grid-template-columns: repeat(3, 1fr);
     gap: 20px;
-    display: flex;
+    display: grid;
     margin: 50px;
   }
   .infos {

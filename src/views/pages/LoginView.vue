@@ -1,7 +1,7 @@
 <template>
   <Transition name="fade-horizontal">
   <div class="login-page">
-    <img src="/src/assets/logo/qualiot.png" alt="">
+    <img src="/public/assets/logo/qualiot.png" alt="">
     <div class="login-container">
       <h2>Login</h2>
 

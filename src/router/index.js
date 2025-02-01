@@ -37,7 +37,7 @@ const router = createRouter({
           path: "/cadastrados",
           name: "cadastrados",
           component: () => import("../views/CadastradosView.vue"),
-        }
+        },
       ],
     },
   ],
