@@ -5,11 +5,9 @@ import { RouterView } from 'vue-router';
 
 <template>
   <Header/>
-    <RouterView v-slot="{ Component }">
-        <Transition name="router" mode="default">
-            <component :is="Component" :key="$route.fullPath" />
-        </Transition>
-    </RouterView>
+    <Transition name="router" mode="default">
+      <RouterView/>
+    </Transition>
 </template>
 
 <style>
@@ -17,8 +15,7 @@ import { RouterView } from 'vue-router';
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif
-}
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   input[type="number"] {
     -moz-appearance: textfield; 
     -webkit-appearance: none; 
@@ -30,6 +27,7 @@ import { RouterView } from 'vue-router';
     -webkit-appearance: none;
     margin: 0;
   }
+}
 
 body {
     background: linear-gradient(100deg, #ffffff, white ,#BAE2FC);

@@ -8,7 +8,7 @@ import { RouterView } from 'vue-router';
       </Transition>
 </template>
 
-<style scoped>
+<style>
 
 
 .router-enter-from {

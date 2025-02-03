@@ -94,7 +94,7 @@ function setActiveLink(path) {
 
 <style scoped>
 .header {
-  padding: 10px 20px;
+  margin-bottom: 20px;
   width: 100%;
   display: flex;
   align-items: center;
@@ -112,7 +112,7 @@ function setActiveLink(path) {
 
 .links {
   display: flex;
-  gap: 20px;
+  gap: 10px;
 }
 
 .links a.active {
@@ -122,12 +122,12 @@ function setActiveLink(path) {
 
 .links a {
   background-color: #bae2fc;
-  padding: 15px;
+  padding: 10px;
   box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.53);
   border-radius: 10px;
   cursor: pointer;
   text-decoration: none;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: bold;
   color: #000000;
   transition: .3s;

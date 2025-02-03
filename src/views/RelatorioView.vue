@@ -25,7 +25,7 @@ const carregarRelatorioLocal = () => {
   try {
     isLoading.value = true;
 
-    // Simula os dados armazenados no localStorage
+    // Simula os dadJos armazenados no localStorage
     const usuario = JSON.parse(localStorage.getItem("user")) || {
       name: "name",
       email: "usuario@exemplo.com",

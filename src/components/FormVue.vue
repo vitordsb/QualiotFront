@@ -17,7 +17,7 @@ const pesos = ref([]);
 const media = ref(0);
 const finalGrade = ref(0);
 const proeficiencia = ref('não avaliado');
-proeficiencia.value = 'não avaliado';
+proeficiencia.value = 'não avaliado'
 
 watch(isLoading, (newValue) => {
   const overlay = document.querySelector('.loading-overlay');
@@ -29,115 +29,77 @@ watch(isLoading, (newValue) => {
     }
   }
 });
+
 const enviarJustificativas = async () => {
   try {
-    const storedPerguntasId = localStorage.getItem(`perguntasId_tab_${props.tabIndex}`);
-    if (!storedPerguntasId) return;
-    const perguntasIdArray = JSON.parse(storedPerguntasId);
-    isLoading.value = true;
     const token = localStorage.getItem('token');
-    const justificationIdsArray = [];
-    for (let i = 0; i < perguntasIdArray.length; i++) {
-      const questionId = perguntasIdArray[i];
-      const justificationText = justificativa.value[i]?.trim() || "";
-      if (!justificationText) {
-        console.warn(`Justificativa para a pergunta ${questionId} está vazia. Pulando envio.`);
-        justificationIdsArray[i] = null;
-        continue;
-      }
-      const getResponse = await fetch(
-        `https://qualiotbackend.onrender.com/justifications/get-by-question/${questionId}`,
-        {
-          method: 'GET',
+    const storedPerguntasId = localStorage.getItem(`perguntasId_tab_${props.tabIndex}`);
+    if (!storedPerguntasId) {
+      alert('Nenhuma pergunta encontrada para enviar justificativas.');
+      return;
+    }
+    const perguntasIdArray = JSON.parse(storedPerguntasId);
+    for (let i = 0; i < justificativa.value.length; i++) {
+      if (justificativa.value[i] && justificativa.value[i].trim() !== "") {
+        const response = await fetch('https://qualiotbackend.onrender.com/justifications', {
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `${token}`,
           },
-        }
-      );
-      const getData = await getResponse.json();
-      if (Array.isArray(getData.justificationQuestions) && getData.justificationQuestions.length > 0) {
-        console.warn(`Justificativa para a pergunta ${questionId} já existe. Pulando POST.`);
-        justificationIdsArray[i] = getData.justificationQuestions[0]._id;e
-        justificativa.value[i] = getData.justificationQuestions[0].justification;
-        continue;
-      }
-      const response = await fetch(`https://qualiotbackend.onrender.com/justifications/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `${token}`,
-        },
-        body: JSON.stringify({
-          justification: justificationText,
-          _idQuestionCategory: questionId,
-        }),
-      });
-      const data = await response.json();
-      console.log(`Justificativa enviada para a pergunta ${questionId}:`, data);
-      if (response.ok) {
-        justificativa.value[i] = data.justification || justificationText;
-        justificationIdsArray[i] = data._id;
-      } else {
-        console.error(`Erro ao enviar justificativa para a pergunta ${questionId}:`, data);
-        justificationIdsArray[i] = null;
+          body: JSON.stringify({
+            justification: justificativa.value[i],
+            _idQuestionCategory: perguntasIdArray[i],
+          }),
+        });
+        const data = await response.json();
+        console.log(data)
       }
     }
-    localStorage.setItem(`justificativa_tab_${props.tabIndex}`, JSON.stringify(justificationIdsArray));
-    console.log("Justification IDs stored:", justificationIdsArray);
+    buscarJustificativa();
   } catch (error) {
-    console.error('Erro ao enviar justificativa:', error);
-  } finally {
-    isLoading.value = false;
+    console.error('Erro ao enviar justificativas:', error);
   }
 };
-const buscarJustificativa = async () => {
-  try {
-    const storedPerguntasId = localStorage.getItem(`perguntasId_tab_${props.tabIndex}`);
-    if (!storedPerguntasId) return;
-    const perguntasIdArray = JSON.parse(storedPerguntasId);
-    const token = localStorage.getItem('token');
-    let justificationsArray = [];
 
-    for (let i = 0; i < perguntasIdArray.length; i++) {
-      const id = perguntasIdArray[i];
-      const response = await fetch(
-        `https://qualiotbackend.onrender.com/justifications/get-by-question/${id}`,
-        {
-          method: 'GET',
+const atualizarJustificativa = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    // Para cada justificativa, se houver um ID salvo, envia a atualização via PATCH
+    for (let i = 0; i < justificativa.value.length; i++) {
+      const justificationId = localStorage.getItem(`justification_tab_${props.tabIndex}_${i}`);
+      if (justificationId) {
+        const response = await fetch(`https://qualiotbackend.onrender.com/justifications/${justificationId}`, {
+          method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `${token}`,
           },
-        }
-      );
-      
-      const data = await response.json();
-      if (
-        data.justificationQuestions &&
-        Array.isArray(data.justificationQuestions) &&
-        data.justificationQuestions.length > 0
-      ) {
-        justificationsArray[i] = data.justificationQuestions[0].justification || "";
-        localStorage.setItem(`justification_tab_${props.tabIndex}_${i}`, data.justificationQuestions[0]._id);
+          body: JSON.stringify({
+            justification: justificativa.value[i],
+            _idQuestionCategory: localStorage.getItem(`perguntasId_tab_${props.tabIndex}`),
+          }),
+        });
+        const data = await response.json();
+        console.log(`Justificativa atualizada com sucesso para a pergunta ${i}:`, data);
       } else {
-        justificationsArray[i] = "";
+        console.log(`Nenhuma justificativa existente para a pergunta ${i}. Se for o caso, utilize o método "enviarJustificativas".`);
       }
     }
-    justificativa.value = justificationsArray;
-    console.log('Justificativas carregadas:', justificativa.value);
+    buscarJustificativa();
   } catch (error) {
-    console.error('Erro ao buscar justificação:', error);
+    console.error('Erro ao atualizar justificativas:', error);
+    alert('Erro ao atualizar as justificativas. Tente novamente.');
   }
 };
 const distribuirPesos = () => {
   const numPerguntas = perguntas.value.length;
   switch (numPerguntas) {
     case 1:
-      pesos.value = [4];
+      pesos.value = [10];
       break;
     case 2:
-      pesos.value = [4, 3];
+      pesos.value = [5, 5];
       break;
     case 3:
       pesos.value = [4, 3, 3];
@@ -149,11 +111,12 @@ const distribuirPesos = () => {
       pesos.value = [4, 3, 3, 2, 2];
       break;
     default:
-      const basePeso = 2;
+      const basePeso = 3;
       pesos.value = Array(numPerguntas).fill(basePeso);
       break;
   }
 };
+
 const adicionarPergunta = async () => {
   try {
     isLoading.value = true;
@@ -184,6 +147,7 @@ const adicionarPergunta = async () => {
     alert('Pergunta cadastrada com sucesso!');
     console.log('Pergunta cadastrada com sucesso:', data);
     buscarPerguntas();
+    buscarJustificativa();
   } catch (error) {
     console.error('Erro ao cadastrar pergunta:', error);
     alert('Erro ao cadastrar pergunta. Tente novamente.');
@@ -191,6 +155,7 @@ const adicionarPergunta = async () => {
     isLoading.value = false;
   }
 };
+
 const removerPergunta = async (index) => {
   try {
     isLoading.value = true;
@@ -232,6 +197,7 @@ const removerPergunta = async (index) => {
     isLoading.value = false;
   }
 };
+
 const buscarPerguntas = async () => {
   try {
     isLoading.value = true;
@@ -270,38 +236,68 @@ const buscarPerguntas = async () => {
     computeFinalGrade();
   }
 };
-const calcularMediaAba = async () => {
-  isLoading.value = true; // Ativa a animação enquanto calcula
+
+const updateQuestionGrades = async () => {
   const storedPerguntasId = localStorage.getItem(`perguntasId_tab_${props.tabIndex}`);
-
-  if (!storedPerguntasId) {
-    alert('Nenhuma pergunta encontrada para esta aba.');
-    isLoading.value = false;
-    return;
-  }
-
+  if (!storedPerguntasId) return;
   const perguntasIdArray = JSON.parse(storedPerguntasId);
+  const token = localStorage.getItem('token');
+  let storedNotas = JSON.parse(localStorage.getItem(`notas_tab_${props.tabIndex}`)) || [];
+
+  for (let i = 0; i < perguntasIdArray.length; i++) {
+    let gradeValue = parseFloat(notas.value[i]);
+    if (isNaN(gradeValue)) {
+      gradeValue = storedNotas[i] !== undefined ? storedNotas[i] : 0;
+    }
+    
+    const response = await fetch(`https://qualiotbackend.onrender.com/questions/${perguntasIdArray[i]}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ grade: gradeValue }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error(`Erro ao atualizar grade para a pergunta ${perguntasIdArray[i]}`, errorData);
+    }
+  }
+};
+
+const calcularMediaAba = async () => {
+  isLoading.value = true; // Ativa o loading
+
   try {
+    await updateQuestionGrades();
+    await buscarPerguntas();
     let somaPesos = 0;
     let somaPonderada = 0;
-
+    
     for (let i = 0; i < perguntas.value.length; i++) {
-      if (notas.value[i] !== undefined && notas.value[i] !== null) {
-        const peso = pesos.value[i];
-        somaPonderada += parseFloat(notas.value[i]) * peso;
-        somaPesos += peso;
+      let notaAtual = parseFloat(notas.value[i]);
+      if (isNaN(notaAtual)) {
+        notaAtual = 0;
       }
+      const peso = pesos.value[i] || 0;
+      somaPonderada += notaAtual * peso;
+      somaPesos += peso;
     }
-    const resultadoMedia = somaPesos > 0 ? (somaPonderada / somaPesos).toFixed(2) : 0;
-    media.value = Number(resultadoMedia);
-    localStorage.setItem(`media_tab_${props.tabIndex}`, resultadoMedia);
+    
+    const resultadoMedia = somaPesos > 0 ? (somaPonderada / somaPesos) : 0;
+    media.value = Number(resultadoMedia.toFixed(2));
+    localStorage.setItem(`media_tab_${props.tabIndex}`, media.value.toFixed(2));
+    computeFinalGrade();
+    await buscarJustificativa();
   } catch (error) {
     console.error('Erro ao calcular a média ponderada:', error);
     alert('Erro ao calcular a média. Tente novamente.');
   } finally {
-    isLoading.value = false; // Desativa a animação ao finalizar
+    isLoading.value = false;
   }
 };
+
 const computeFinalGrade = () => {
   let somaMedias = 0;
   let contadorMedias = 0;
@@ -312,20 +308,62 @@ const computeFinalGrade = () => {
       contadorMedias += 1;
     }
   }
-  finalGrade.value = contadorMedias > 0 ? (somaMedias / contadorMedias).toFixed(2) : 0;
+  const mediaFinal = contadorMedias > 0 ? somaMedias / contadorMedias : 0;
+  finalGrade.value = Number(mediaFinal.toFixed(2));
   if (finalGrade.value < 5) {
     proeficiencia.value = 'baixo';
   } else if (finalGrade.value <= 8) {
-    proeficiencia.value = 'medio';
+    proeficiencia.value = 'médio';
   } else {
     proeficiencia.value = 'alto';
   }
   localStorage.setItem('finalGrade', finalGrade.value);
 };
 
+const buscarJustificativa = async () => {
+  try {
+    const storedPerguntasId = localStorage.getItem(`perguntasId_tab_${props.tabIndex}`);
+    if (!storedPerguntasId) return;
+    const perguntasIdArray = JSON.parse(storedPerguntasId);
+    const token = localStorage.getItem('token');
+    let justificationsArray = [];
+
+    for (let i = 0; i < perguntasIdArray.length; i++) {
+      const id = perguntasIdArray[i];
+      const response = await fetch(
+        `https://qualiotbackend.onrender.com/justifications/get-by-question/${id}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `${token}`,
+          },
+        }
+      );
+      
+      const data = await response.json();
+      if (
+        data.justificationQuestions &&
+        Array.isArray(data.justificationQuestions) &&
+        data.justificationQuestions.length > 0
+      ) {
+        justificationsArray[i] = data.justificationQuestions[0].justification || "";
+        localStorage.setItem(`justification_tab_${props.tabIndex}_${i}`, data.justificationQuestions[0]._id);
+      } else {
+        justificationsArray[i] = "";
+      }
+    }
+    justificativa.value = justificationsArray;
+    console.log('Justificativas carregadas:', justificativa.value);
+  } catch (error) {
+    console.error('Erro ao buscar justificativa:', error);
+  }
+};
+
 onMounted(async () => {
   isLoading.value = true;
   try {
+    await calcularMediaAba();
     await buscarPerguntas();
     await buscarJustificativa();
     computeFinalGrade();
@@ -384,23 +422,26 @@ onMounted(async () => {
         <button @click="calcularMediaAba" class="btn btn-primary">
           Calcular média
         </button>
+        <button @click="enviarJustificativas" class="btn btn-primary">
+          Enviar/Atualizar justificativas
+        </button>
       </div>
 
       <div class="calculos">
-        <div class="mediaCalculate">
-          <div class="title">
-            <h1>Nota da categoria:</h1>
-          </div>
-          <div class="nota">
-            {{ media }}
-          </div>
-        </div>
         <div class="mediaCalculateFinal">
           <div class="title">
             <h1>Média Final:</h1>
           </div>
           <div class="nota">
             {{ finalGrade }}
+          </div>
+        </div>
+        <div class="mediaCalculate">
+          <div class="title">
+            <h1>Nota da categoria:</h1>
+          </div>
+          <div class="nota">
+            {{ media }}
           </div>
         </div>
       </div>
@@ -417,23 +458,20 @@ onMounted(async () => {
   </div>
 </template>
 
-
 <style scoped>
+/* (Os estilos permanecem inalterados) */
 .calculos {
   display: flex;
-  margin-top: 10px;
   width: 100%;
   justify-content: space-between;
 }
 
 .proeficientContainer {
   width: 100%;
-  margin-top: 10px;
   display: flex;
-  gap: 20px;
+  gap: 10px;
+  padding: 10px 0;
   align-items: center;
-  margin-bottom: 10px;
-  padding: 10px;
   border-radius: 10px;
   color: white;
 }
@@ -442,9 +480,8 @@ onMounted(async () => {
   color: #dc3545;
 }
 
-.proeficientContainer.medio {
+.proeficientContainer.médio {
   color: #ffc107;
-  color: black;
 }
 
 .proeficientContainer.alto {
@@ -454,78 +491,23 @@ onMounted(async () => {
 .form {
   display: flex;
   flex-direction: column;
-  align-items: end;
-  padding: 20px;
+  padding: 50px;
   width: 100%;
-  max-width: 1500px;
+  max-width: auto;
   background-color: #ffffff;
   border-radius: 10px;
   box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.318);
 }
-.loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(255, 255, 255, 0.85);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-  transition: opacity 0.5s ease-in-out;
-}
-[v-cloak] .loading-overlay {
-  opacity: 0;
-  visibility: hidden;
-}
-.spinner {
-  width: 60px;
-  height: 60px;
-  border: 6px solid rgba(0, 123, 255, 0.3);
-  border-top: 6px solid #007bff;
-  border-radius: 50%;
-  animation: spin 1.2s linear infinite;
-}
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-.loading-overlay p {
-  font-size: 1.2em;
-  font-weight: bold;
-  color: #333;
-  margin-top: 10px;
-  opacity: 0;
-  animation: fadeIn 1s ease-in-out forwards;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
 .questionario {
   display: flex;
-  justify-content: center;
   width: auto;
 }
 
 .pergunta textarea {
   resize: none;
-  width: 50%;
-  height: 60px;
+  width: 100%;
+  height: 70px;
   padding: 5px;
   border: none;
   border-radius: 8px;
@@ -536,8 +518,8 @@ onMounted(async () => {
 
 .sla {
   align-items: center;
-  gap: 40px;
   width: 100%;
+  gap: 30px;
   display: flex;
 }
 
@@ -545,25 +527,22 @@ onMounted(async () => {
   font-size: 1em;
   text-align: justify;
   width: 400px;
-  word-wrap: break-word;
 }
 
 .pergunta {
-  padding: 10px;
+  margin: 10px;
   width: 100%;
-  justify-content: center;
   display: flex;
-  gap: 30px;
+  gap: 20px;
   align-items: center;
-  margin-bottom: 15px;
 }
 
 .pergunta label {
-  display: block;
+  display: flex;
   text-align: start;
-  width: 300px;
+  width: 400px;
   font-weight: bold;
-  font-size: 1.5em;
+  font-size: 1.4em;
   color: #000000;
   margin-bottom: 5px;
 }
@@ -585,12 +564,12 @@ onMounted(async () => {
   width: 100%;
   display: flex;
   justify-content: space-between;
-  margin-top: 20px;
+  margin-top: 10px;
 }
 
 .btn {
-  padding: 10px 20px;
-  font-size: 1.2em;
+  padding: 10px 10px;
+  font-size: 1.1em;
   font-weight: bold;
   border: none;
   border-radius: 10px;
@@ -644,23 +623,76 @@ onMounted(async () => {
   height: auto;
   color: #007BFF;
   align-items: center;
-  padding: 10px;
+  padding: 10px 0;
   border-radius: 10px;
   display: flex;
   margin-top: 10px;
 }
 
 .mediaCalculateFinal {
-  background-color: #6c757d;
-  color: white;
+  color: rgb(0, 0, 0);
 }
 
 .title h1 {
-  font-size: 30px;
+  font-size: 25px;
 }
 
 .nota {
   font-weight: bold;
-  font-size: 32px;
+  font-size: 30px;
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.85);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  transition: opacity 0.5s ease-in-out;
+}
+[v-cloak] .loading-overlay {
+  opacity: 0;
+  visibility: hidden;
+}
+.spinner {
+  width: 60px;
+  height: 60px;
+  border: 6px solid rgba(0, 123, 255, 0.3);
+  border-top: 6px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1.2s linear infinite;
+}
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.loading-overlay p {
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #333;
+  margin-top: 10px;
+  opacity: 0;
+  animation: fadeIn 1s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>
