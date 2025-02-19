@@ -1,37 +1,36 @@
 <template>
   <div class="produto-cadastro">
-    <!-- Abas -->
     <div class="abas">
-      <button 
-        :class="{ active: abaAtiva === 'cadastrar' }" 
-        @click="abaAtiva = 'cadastrar'">
+      <button :class="{ active: abaAtiva === 'cadastrar' }" @click="abaAtiva = 'cadastrar'">
         Cadastrar Produto
       </button>
-      <button 
-        :class="{ active: abaAtiva === 'listar' }" 
-        @click="listarProdutos">
+      <button :class="{ active: abaAtiva === 'listar' }" @click="listarProdutos">
         Listar Produtos
       </button>
     </div>
-
     <div class="transicao-container">
       <Transition name="fade-horizontal">
         <div v-if="abaAtiva === 'cadastrar'" class="form-container">
-          <h1>Cadastro de Produto</h1>
-          <form @submit.prevent="cadastrarProduto">
-            <div class="form-group">
-              <label for="nome">Nome do Produto:</label>
-              <input type="text" id="nome" v-model="produto.nome" required />
-            </div>
-            <div class="form-group">
-              <label for="descricao">Descrição:</label>
-              <textarea id="descricao" v-model="produto.descricao" required></textarea>
-            </div>
-            <button type="submit" class="btn-cadastrar">Cadastrar Produto</button>
-          </form>
+          <div v-if="isLoading" class="loading-container">
+            <div class="spinner"></div>
+            <p>Carregando produto, por favor aguarde...</p>
+          </div>
+          <div v-else>
+            <h1>Cadastro de Produto</h1>
+            <form @submit.prevent="cadastrarProduto">
+              <div class="form-group">
+                <label for="nome">Nome do Produto:</label>
+                <input type="text" id="nome" v-model="produto.nome" required />
+              </div>
+              <div class="form-group">
+                <label for="descricao">Descrição:</label>
+                <textarea id="descricao" v-model="produto.descricao" required></textarea>
+              </div>
+              <button type="submit" class="btn-cadastrar">Cadastrar Produto</button>
+            </form>
+          </div>
         </div>
       </Transition>
-
       <Transition name="fade-horizontal">
         <div v-if="abaAtiva === 'listar'" class="list-container">
           <h1>Produtos Cadastrados</h1>
@@ -61,32 +60,27 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-
+import { ref, onMounted } from 'vue';
 const abaAtiva = ref('cadastrar');
 const produto = ref({ nome: '', descricao: '' });
 const produtos = ref([]);
 const isLoading = ref(false);
 const backendURL = 'https://qualiotbackend.onrender.com/products';
-
+onMounted( async () => {
+  await listarProdutos();
+});
 const listarProdutos = async () => {
   abaAtiva.value = 'listar';
   try {
     isLoading.value = true; 
     const token = localStorage.getItem('token');
-
     const response = await fetch(backendURL, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        'Authorization': `${token}`,
       },
     });
-
-    if (!response.ok) {
-      throw new Error('Erro ao buscar produtos');
-    }
-
     const data = await response.json();
     produtos.value = data.product;
     if (produtos.value.length > 0) {
@@ -94,13 +88,8 @@ const listarProdutos = async () => {
       console.log(produtos.value[0]._id);
     }
     console.log('Produtos recebidos:', data.product);
-    //pegando o valor da nota final do produto
-    const finalGrade = data.product[0].finalGrade;
-    
-    console.log(finalGrade);
   } catch (error) {
     console.error('Erro ao buscar produtos:', error);
-    alert('Não foi possível carregar os produtos. Faça login novamente.');
   } finally {
     isLoading.value = false;
   }
@@ -108,36 +97,32 @@ const listarProdutos = async () => {
 const cadastrarProduto = async () => {
   if (produto.value.nome && produto.value.descricao) {
     try {
+      isLoading.value = true;
       const token = localStorage.getItem('token');
       const novoProduto = {
         name: produto.value.nome,
         description: produto.value.descricao,
       };
-
       const response = await fetch(backendURL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `${token}`,
         },
         body: JSON.stringify(novoProduto),
       });
-
       if (!response.ok) {
         throw new Error('Erro ao cadastrar produto');
       }
-      
       const data = await response.json();
       produtos.value.push(data);
       alert('Produto cadastrado com sucesso!');
-
-      // Se for o primeiro produto cadastrado, salve-o como "produtoParaDarNota"
       if (produtos.value.length === 1) {
         localStorage.setItem("produtoParaDarNota", data._id);
       }
-
       localStorage.setItem("produto", JSON.stringify(produtos.value));
       produto.value = { nome: '', descricao: '' };
+      window.location.reload();
     } catch (error) {
       console.error('Erro ao cadastrar produto:', error);
       alert('Erro ao cadastrar o produto. Tente novamente.');
@@ -149,22 +134,20 @@ const cadastrarProduto = async () => {
 const removerProduto = async (index) => {
   const produtoRemovido = produtos.value[index];
   if (!produtoRemovido) return;
-
   try {
     const token = localStorage.getItem('token');
     const response = await fetch(`${backendURL}/${produtoRemovido._id}`, {
       method: 'DELETE',
       headers: {
-        'Authorization': `Bearer ${token}`,
+        'Authorization': `${token}`,
       },
     });
-
     if (!response.ok) {
       throw new Error('Erro ao remover produto');
     }
-
     produtos.value.splice(index, 1);
     alert('Produto removido com sucesso!');
+    window.location.reload();
   } catch (error) {
     console.error('Erro ao remover o produto:', error);
     alert('Erro ao remover o produto. Tente novamente.');
@@ -184,10 +167,8 @@ const editarProduto = async (index) => {
     alert('Produto não encontrado.');
     return;
   }
-
   const newProductName = prompt('Digite o novo nome do produto', prod.name);
   const newProductDescription = prompt('Digite a nova descrição do produto', prod.description);
-
   if (newProductName === null || newProductDescription === null) {
     alert('Edição cancelada.');
     return;
@@ -204,30 +185,25 @@ const editarProduto = async (index) => {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        'Authorization': `${token}`,
       },
       body: JSON.stringify({
         name: trimmedName,
         description: trimmedDescription,
       }),
     });
-
-    // Aguarda a resposta JSON
     const data = await response.json();
-
     if (!response.ok) {
       throw new Error(data.message || 'Erro ao editar o produto');
     }
-
-    // Atualiza o produto na lista local
-    produtos.value[index] = data; // Supondo que o backend retorna o produto atualizado
+    window.location.reload();
+    produtos.value[index] = data;
     alert('Produto editado com sucesso!');
   } catch (error) {
     console.error('Erro ao editar o produto:', error);
     alert('Erro ao editar o produto. Tente novamente.');
   }
 };
-
 </script>
 
 <style scoped>
@@ -238,20 +214,17 @@ const editarProduto = async (index) => {
   max-width: 800px;
   margin: 100px auto;
 }
-
 .abas {
   display: flex;
   justify-content: center;
   margin-bottom: 20px;
   gap: 10px;
 }
-
 .botoes {
   display: flex;
   gap: 10px;
-  margin: 20px 0px 0px;
+  margin-top: 20px;
 }
-
 .abas button {
   padding: 15px 30px;
   border: none;
@@ -262,24 +235,20 @@ const editarProduto = async (index) => {
   border-radius: 10px;
   transition: background-color 0.2s;
 }
-
-@media (max-width: 700px){
-    .abas button {
-        padding: 10px;
-    }
+@media (max-width: 700px) {
+  .abas button {
+    padding: 10px;
+  }
 }
-
 .abas button.active,
 .abas button:hover {
   background-color: #348acf;
   color: white;
 }
-
 .transicao-container {
   position: relative;
   height: 100%;
 }
-
 .form-container,
 .list-container {
   background-color: #F0F2F5;
@@ -291,22 +260,19 @@ const editarProduto = async (index) => {
   width: 100%;
   padding: 50px;
 }
-
 .form-group {
-    margin-top: 30px;
-    display: flex;
-    width: auto;
-    align-items: center;
-    text-align: center;
-    margin-bottom: 20px;
+  margin-top: 30px;
+  display: flex;
+  width: auto;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 20px;
 }
-
 .form-group label {
   font-weight: bold;
   font-size: 20px;
   width: 400px;
 }
-
 .form-group input,
 .form-group textarea {
   resize: none;
@@ -319,12 +285,10 @@ const editarProduto = async (index) => {
   box-shadow: 1px 1px 1px 1px #ddd;
   border-radius: 10px;
 }
-
 .form-group input:focus,
 .form-group textarea:focus {
   outline: none;
-} 
-
+}
 .btn-cadastrar {
   padding: 10px;
   background-color: #348acf;
@@ -335,16 +299,12 @@ const editarProduto = async (index) => {
   border-radius: 8px;
   display: flex;
   font-weight: bold;
-  margin-right: auto;
-  margin-left: auto;
-  margin-top: 10px;
+  margin: 10px auto 0;
   transition: background-color 0.3s;
 }
-
 .btn-cadastrar:hover {
   background-color: #276ba1;
 }
-
 .produtos-list {
   margin-top: 50px;
   text-align: start;
@@ -352,45 +312,38 @@ const editarProduto = async (index) => {
   flex-direction: column;
   gap: 20px;
 }
-
-@media (max-width: 700px){
-    .produtos-list {
-        margin: 0px;
-    }
+@media (max-width: 700px) {
+  .produtos-list {
+    margin: 0;
+  }
 }
-
 .produto-card {
   background-color: #ffffff;
   box-shadow: 1px 1px 1px 2px #0000003e;
   padding: 30px;
   border-radius: 8px;
 }
-
-@media (max-width: 700px){
-    .produto-card {
-        padding: 10px;
-        margin-top: 30px;
-    }
+@media (max-width: 700px) {
+  .produto-card {
+    padding: 10px;
+    margin-top: 30px;
+  }
 }
-
 .produto-detalhes h2 {
   margin: 0 0 15px;
   color: #333;
   font-size: 22px;
 }
-
 .produto-detalhes p {
   margin: 0;
   color: #666;
   font-size: 16px;
 }
-
 .botoes {
   display: flex;
   gap: 10px;
   margin-top: 20px;
 }
-
 .btn-remover {
   padding: 8px 15px;
   background-color: #ff4d4d;
@@ -401,11 +354,9 @@ const editarProduto = async (index) => {
   cursor: pointer;
   font-size: 16px;
 }
-
 .btn-remover:hover {
   background-color: #d42f2f;
 }
-
 .btn-editar {
   padding: 8px 15px;
   background-color: #007af3;
@@ -416,17 +367,14 @@ const editarProduto = async (index) => {
   cursor: pointer;
   font-size: 16px;
 }
-
 .btn-editar:hover {
   background-color: #0056b3;
 }
-
 .loading-container {
   text-align: center;
   color: #555;
   font-size: 1.2em;
 }
-
 .spinner {
   margin: 10px auto;
   width: 50px;
@@ -436,7 +384,6 @@ const editarProduto = async (index) => {
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
-
 @keyframes spin {
   from {
     transform: rotate(0deg);

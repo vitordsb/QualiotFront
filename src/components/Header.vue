@@ -4,7 +4,7 @@
       
       <div class="dropdown">
         <button class="dropdown-btn" @click="toggleDropdown">
-          <img src="/public/assets/logo/qualiot.png" alt="User Icon">
+          <img src="/public/assets/logo/qualiot.png" alt="User Icon" />
           <span>Bem vindo, {{ userName }}!</span>
         </button>
         <div class="dropdown-content" v-if="dropdownVisible">
@@ -20,7 +20,10 @@
         >
           Cadastrar produtos
         </RouterLink>
+
+        <!-- Exibe somente se houver produto cadastrado no banco -->
         <RouterLink 
+          v-if="temProduto" 
           to="/regras" 
           :class="{ active: activeLink === '/regras' }" 
           @click.native="setActiveLink('/regras')"
@@ -28,12 +31,14 @@
           Fazer avaliação
         </RouterLink>
         <RouterLink 
+          v-if="temProduto" 
           to="/relatorio" 
           :class="{ active: activeLink === '/relatorio' }" 
           @click.native="setActiveLink('/relatorio')"
         >
           Solicitar relatório
         </RouterLink>
+
         <RouterLink 
           to="/cadastrados" 
           :class="{ active: activeLink === '/cadastrados' }" 
@@ -53,9 +58,8 @@
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { RouterLink } from 'vue-router';
+import { ref, watch, computed, onMounted } from 'vue';
+import { useRoute, useRouter, RouterLink } from 'vue-router';
 import { auth, clearUser } from './states/auth';
 
 const router = useRouter();
@@ -67,6 +71,37 @@ const isLogin = ref(false);
 const isRegister = ref(false);
 const activeLink = ref(route.path);
 const userName = computed(() => auth.userName);
+
+// Ref que indica se há pelo menos um produto no banco de dados
+const temProduto = ref(false);
+
+// Função para buscar os produtos no banco de dados
+async function verificarProdutos() {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch('https://qualiotbackend.onrender.com/products', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) {
+      throw new Error('Erro ao buscar produtos');
+    }
+    const data = await response.json();
+    // Supondo que o backend retorne os produtos em data.product
+    temProduto.value = data.product && data.product.length > 0;
+  } catch (error) {
+    console.error('Erro ao buscar produtos:', error);
+    temProduto.value = false;
+  }
+}
+
+// Chama a função quando o componente é montado
+onMounted(() => {
+  verificarProdutos();
+});
 
 watch(route, (newRoute) => {
   isLogin.value = newRoute.path === '/';
@@ -94,7 +129,6 @@ function setActiveLink(path) {
 
 <style scoped>
 .header {
-  margin-bottom: 20px;
   width: 100%;
   display: flex;
   align-items: center;
@@ -103,9 +137,10 @@ function setActiveLink(path) {
 }
 
 .container {
+  padding: 0px 20px;
   display: flex;
   align-items: center;
-  justify-content: space-around;
+  justify-content: space-between;
   width: 100%;
   position: relative;
 }
@@ -123,7 +158,6 @@ function setActiveLink(path) {
 .links a {
   background-color: #bae2fc;
   padding: 10px;
-  box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.53);
   border-radius: 10px;
   cursor: pointer;
   text-decoration: none;

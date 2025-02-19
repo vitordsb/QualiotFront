@@ -1,14 +1,12 @@
 <script setup>
 import { defineProps, ref, onMounted, watch } from 'vue';
-
 const props = defineProps({
   tabIndex: {
     type: Number,
     required: true,
   },
 });
-
-const justificativa = ref([]); 
+const justificativa = ref([]);
 const descricao = ref([]);
 const perguntas = ref([]);
 const isLoading = ref(true);
@@ -17,7 +15,7 @@ const pesos = ref([]);
 const media = ref(0);
 const finalGrade = ref(0);
 const proeficiencia = ref('não avaliado');
-proeficiencia.value = 'não avaliado'
+proeficiencia.value = 'não avaliado';
 
 watch(isLoading, (newValue) => {
   const overlay = document.querySelector('.loading-overlay');
@@ -29,7 +27,6 @@ watch(isLoading, (newValue) => {
     }
   }
 });
-
 const enviarJustificativas = async () => {
   try {
     const token = localStorage.getItem('token');
@@ -53,7 +50,7 @@ const enviarJustificativas = async () => {
           }),
         });
         const data = await response.json();
-        console.log(data)
+        console.log(data);
       }
     }
     buscarJustificativa();
@@ -61,11 +58,9 @@ const enviarJustificativas = async () => {
     console.error('Erro ao enviar justificativas:', error);
   }
 };
-
 const atualizarJustificativa = async () => {
   try {
     const token = localStorage.getItem('token');
-    // Para cada justificativa, se houver um ID salvo, envia a atualização via PATCH
     for (let i = 0; i < justificativa.value.length; i++) {
       const justificationId = localStorage.getItem(`justification_tab_${props.tabIndex}_${i}`);
       if (justificationId) {
@@ -116,7 +111,6 @@ const distribuirPesos = () => {
       break;
   }
 };
-
 const adicionarPergunta = async () => {
   try {
     isLoading.value = true;
@@ -155,7 +149,6 @@ const adicionarPergunta = async () => {
     isLoading.value = false;
   }
 };
-
 const removerPergunta = async (index) => {
   try {
     isLoading.value = true;
@@ -197,7 +190,6 @@ const removerPergunta = async (index) => {
     isLoading.value = false;
   }
 };
-
 const buscarPerguntas = async () => {
   try {
     isLoading.value = true;
@@ -236,20 +228,17 @@ const buscarPerguntas = async () => {
     computeFinalGrade();
   }
 };
-
 const updateQuestionGrades = async () => {
   const storedPerguntasId = localStorage.getItem(`perguntasId_tab_${props.tabIndex}`);
   if (!storedPerguntasId) return;
   const perguntasIdArray = JSON.parse(storedPerguntasId);
   const token = localStorage.getItem('token');
   let storedNotas = JSON.parse(localStorage.getItem(`notas_tab_${props.tabIndex}`)) || [];
-
   for (let i = 0; i < perguntasIdArray.length; i++) {
     let gradeValue = parseFloat(notas.value[i]);
     if (isNaN(gradeValue)) {
       gradeValue = storedNotas[i] !== undefined ? storedNotas[i] : 0;
     }
-    
     const response = await fetch(`https://qualiotbackend.onrender.com/questions/${perguntasIdArray[i]}`, {
       method: 'PATCH',
       headers: {
@@ -258,23 +247,19 @@ const updateQuestionGrades = async () => {
       },
       body: JSON.stringify({ grade: gradeValue }),
     });
-
     if (!response.ok) {
       const errorData = await response.json();
       console.error(`Erro ao atualizar grade para a pergunta ${perguntasIdArray[i]}`, errorData);
     }
   }
 };
-
 const calcularMediaAba = async () => {
-  isLoading.value = true; // Ativa o loading
-
+  isLoading.value = true;
   try {
     await updateQuestionGrades();
     await buscarPerguntas();
     let somaPesos = 0;
     let somaPonderada = 0;
-    
     for (let i = 0; i < perguntas.value.length; i++) {
       let notaAtual = parseFloat(notas.value[i]);
       if (isNaN(notaAtual)) {
@@ -284,7 +269,6 @@ const calcularMediaAba = async () => {
       somaPonderada += notaAtual * peso;
       somaPesos += peso;
     }
-    
     const resultadoMedia = somaPesos > 0 ? (somaPonderada / somaPesos) : 0;
     media.value = Number(resultadoMedia.toFixed(2));
     localStorage.setItem(`media_tab_${props.tabIndex}`, media.value.toFixed(2));
@@ -297,7 +281,6 @@ const calcularMediaAba = async () => {
     isLoading.value = false;
   }
 };
-
 const computeFinalGrade = () => {
   let somaMedias = 0;
   let contadorMedias = 0;
@@ -319,7 +302,6 @@ const computeFinalGrade = () => {
   }
   localStorage.setItem('finalGrade', finalGrade.value);
 };
-
 const buscarJustificativa = async () => {
   try {
     const storedPerguntasId = localStorage.getItem(`perguntasId_tab_${props.tabIndex}`);
@@ -327,7 +309,6 @@ const buscarJustificativa = async () => {
     const perguntasIdArray = JSON.parse(storedPerguntasId);
     const token = localStorage.getItem('token');
     let justificationsArray = [];
-
     for (let i = 0; i < perguntasIdArray.length; i++) {
       const id = perguntasIdArray[i];
       const response = await fetch(
@@ -340,13 +321,8 @@ const buscarJustificativa = async () => {
           },
         }
       );
-      
       const data = await response.json();
-      if (
-        data.justificationQuestions &&
-        Array.isArray(data.justificationQuestions) &&
-        data.justificationQuestions.length > 0
-      ) {
+      if (data.justificationQuestions && Array.isArray(data.justificationQuestions) && data.justificationQuestions.length > 0) {
         justificationsArray[i] = data.justificationQuestions[0].justification || "";
         localStorage.setItem(`justification_tab_${props.tabIndex}_${i}`, data.justificationQuestions[0]._id);
       } else {
@@ -359,7 +335,6 @@ const buscarJustificativa = async () => {
     console.error('Erro ao buscar justificativa:', error);
   }
 };
-
 onMounted(async () => {
   isLoading.value = true;
   try {
@@ -377,7 +352,7 @@ onMounted(async () => {
 });
 </script>
 
-<template>  
+<template>
   <div class="form">
     <div v-if="isLoading" class="loading-overlay">
       <div class="spinner"></div>
@@ -387,7 +362,7 @@ onMounted(async () => {
       <div class="questionario">
         <form @submit.prevent>
           <div class="pergunta" v-for="(pergunta, index) in perguntas" :key="index">
-            <div class="sla">
+            <div class="info">
               <label :for="'pergunta' + index">{{ pergunta }}:</label>
               <p>{{ descricao[index] }}</p>
               <span>Nota:</span>
@@ -400,21 +375,22 @@ onMounted(async () => {
                 max="10"
               />
             </div>
-            <span>Justificativa:</span>
-            <textarea
-              v-model="justificativa[index]"
-              :name="'justificativa' + index"
-              :id="'justificativa' + index"
-              cols="30"
-              rows="3"
-            ></textarea>
+            <div class="justificativa-group">
+              <span>Justificativa:</span>
+              <textarea
+                v-model="justificativa[index]"
+                :name="'justificativa' + index"
+                :id="'justificativa' + index"
+                cols="30"
+                rows="3"
+              ></textarea>
+            </div>
             <button @click.prevent="removerPergunta(index)" class="btn btn-remover">
               Excluir
             </button>
           </div>
         </form>
       </div>
-
       <div class="botoes">
         <button @click="adicionarPergunta" class="btn btn-adicionar">
           Adicionar questão
@@ -426,7 +402,6 @@ onMounted(async () => {
           Enviar/Atualizar justificativas
         </button>
       </div>
-
       <div class="calculos">
         <div class="mediaCalculateFinal">
           <div class="title">
@@ -444,8 +419,6 @@ onMounted(async () => {
             {{ media }}
           </div>
         </div>
-      </div>
-
       <div class="proeficientContainer" :class="proeficiencia">
         <div class="title">
           <h1>Nível de Proeficiência:</h1>
@@ -454,119 +427,106 @@ onMounted(async () => {
           {{ proeficiencia.charAt(0).toUpperCase() + proeficiencia.slice(1) }}
         </div>
       </div>
+      </div>
+
+
     </div>
   </div>
 </template>
 
 <style scoped>
-/* (Os estilos permanecem inalterados) */
-.calculos {
-  display: flex;
-  width: 100%;
-  justify-content: space-between;
-}
-
-.proeficientContainer {
-  width: 100%;
-  display: flex;
-  gap: 10px;
-  padding: 10px 0;
-  align-items: center;
-  border-radius: 10px;
-  color: white;
-}
-
-.proeficientContainer.baixo {
-  color: #dc3545;
-}
-
-.proeficientContainer.médio {
-  color: #ffc107;
-}
-
-.proeficientContainer.alto {
-  color: #28a745;
-}
-
 .form {
   display: flex;
-  flex-direction: column;
-  padding: 50px;
-  width: 100%;
-  max-width: auto;
-  background-color: #ffffff;
-  border-radius: 10px;
-  box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.318);
+  border-radius: 15px;
 }
-
 .questionario {
   display: flex;
-  width: auto;
+  flex-direction: row;
+  flex-wrap: wrap;
 }
+.pergunta {
+  display: flex;
+  align-items: center;
+  width: auto;
+  padding: 10px;
+  border: 1px solid #ddd;
+  @media (max-width: 1600px){
+      width: auto;
+  }
+}
+.info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.info label {
+  width: 400px;
+  text-align: start;
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #333;
+  @media (max-width: 1600px){
+      width: 200px;
+      font-size: 1em;
+  }
+}
+.info p {
+  font-size: 1em;
+  color: #555;
+  margin: 0px 50px;
+  width: 500px;
+  text-align: center;
+  @media (max-width: 1600px){
+      width: 350px;
+      font-size: 1em;
+  }
+}
+.info span {
+  font-weight: bold;
+  color: #333;
+}
+.info input {
+  width: 80px;
+  padding: 10px;
+  font-size: 1.2em;
+  text-align: center;
+  border: 1px solid #ccc;
+  border-radius: 8px;
 
+}
+.info input:focus {
+  box-shadow: 0 0 5px rgba(0,123,255,0.5);
+}
+.justificativa-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.justificativa-group span {
+  font-weight: bold;
+  color: #333;
+}
 .pergunta textarea {
   resize: none;
-  width: 100%;
-  height: 70px;
+  width: 350px;
+  margin: 0px 10px;
+  height: 80px;
   padding: 5px;
-  border: none;
-  border-radius: 8px;
   font-size: 1em;
-  background-color: #e4e4e4;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #fafafa;
   transition: box-shadow 0.3s ease;
 }
-
-.sla {
-  align-items: center;
-  width: 100%;
-  gap: 30px;
-  display: flex;
+.pergunta textarea:focus {
+  box-shadow: 0 0 5px rgba(0,123,255,0.5);
 }
-
-.sla p {
-  font-size: 1em;
-  text-align: justify;
-  width: 400px;
-}
-
-.pergunta {
-  margin: 10px;
-  width: 100%;
-  display: flex;
-  gap: 20px;
-  align-items: center;
-}
-
-.pergunta label {
-  display: flex;
-  text-align: start;
-  width: 400px;
-  font-weight: bold;
-  font-size: 1.4em;
-  color: #000000;
-  margin-bottom: 5px;
-}
-
-.pergunta input {
-  font-weight: bolder;
-  text-align: center;
-  display: flex;
-  width: 20%;
-  padding: 10px;
-  border: none;
-  border-radius: 8px;
-  font-size: 2em;
-  background-color: #e4e4e4;
-  transition: box-shadow 0.3s ease;
-}
-
 .botoes {
-  width: 100%;
   display: flex;
-  justify-content: space-between;
-  margin-top: 10px;
+  justify-content: center;
+  gap: 10px;
+  margin: 10px 0;
 }
-
 .btn {
   padding: 10px 10px;
   font-size: 1.1em;
@@ -576,123 +536,114 @@ onMounted(async () => {
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.2s ease;
 }
-
 .btn-remover {
   background-color: #dc3545;
-  color: white;
+  color: #fff;
 }
-
+.btn-remover:hover {
+  background-color: #c82333;
+  transform: scale(1.02);
+}
 .btn-adicionar {
   background-color: #28a745;
-  color: white;
+  color: #fff;
 }
-
 .btn-adicionar:hover {
-  background-color: rgb(30, 126, 52);
+  background-color: #218838;
   transform: scale(1.02);
 }
-
-.btn-remover:hover {
-  background-color: #b10718;
-  transform: scale(1.02);
-}
-
-.btn-atualizar {
-  background-color: #17a2b8;
-  color: white;
-}
-
-.btn-atualizar:hover {
-  background-color: #138496;
-  transform: scale(1.02);
-}
-
 .btn-primary {
   background-color: #007bff;
-  color: white;
+  color: #fff;
 }
-
 .btn-primary:hover {
   background-color: #0056b3;
   transform: scale(1.05);
 }
-
 .mediaCalculate, .mediaCalculateFinal {
-  width: auto;
-  gap: 20px;
-  height: auto;
-  color: #007BFF;
-  align-items: center;
-  padding: 10px 0;
-  border-radius: 10px;
   display: flex;
-  margin-top: 10px;
+  align-items: center;
+  gap: 20px;
+  padding: 10px;
+  border-radius: 10px;
+  background-color: #f1f1f1;
 }
-
-.mediaCalculateFinal {
-  color: rgb(0, 0, 0);
+.mediaCalculate h1, .mediaCalculateFinal h1 {
+  font-size: 1.5em;
+  margin: 0;
+  color: #333;
+  @media (max-width: 1600px){
+      font-size: 1.2em;
+  }
 }
-
-.title h1 {
-  font-size: 25px;
-}
-
 .nota {
-  font-weight: bold;
-  font-size: 30px;
+  font-weight: 700;
+  font-size: 1.5em;
+  @media (max-width: 1600px){
+      font-size: 1.2em;
+  }
 }
 
+.proeficientContainer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  background-color: #f1f1f1;
+  color: #fff;
+}
+.proeficientContainer.baixo {
+  background-color: #dc3545;
+}
+.proeficientContainer.médio {
+  background-color: #ffc107;
+  color: #333;
+}
+.proeficientContainer.alto {
+  background-color: #28a745;
+}
+.calculos {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
 .loading-overlay {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(255, 255, 255, 0.85);
+  background-color: rgba(255,255,255,0.9);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  z-index: 9999;
+  z-index: 99;
   transition: opacity 0.5s ease-in-out;
-}
-[v-cloak] .loading-overlay {
-  opacity: 0;
-  visibility: hidden;
 }
 .spinner {
   width: 60px;
   height: 60px;
-  border: 6px solid rgba(0, 123, 255, 0.3);
+  border: 6px solid rgba(0,123,255,0.3);
   border-top: 6px solid #007bff;
   border-radius: 50%;
-  animation: spin 1.2s linear infinite;
+  animation: spin 1s linear infinite;
 }
 @keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 .loading-overlay p {
   font-size: 1.2em;
   font-weight: bold;
   color: #333;
   margin-top: 10px;
-  opacity: 0;
   animation: fadeIn 1s ease-in-out forwards;
 }
-
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 </style>

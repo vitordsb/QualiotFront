@@ -27,11 +27,13 @@ const router = createRouter({
           path: "/regras",
           name: "regras",
           component: () => import("../views/RegrasView.vue"),
+          meta: { requiresAuth: true, requiresProduct: true },
         },
         {
           path: "/relatorio",
           name: "relatorio",
           component: () => import("../views/RelatorioView.vue"),
+          meta: { requiresAuth: true, requiresProduct: true },
         },
         {
           path: "/cadastrados",
@@ -43,17 +45,46 @@ const router = createRouter({
   ],
 });
 
-router.beforeEach((to, from, next) => {
-  if (to.matched.some((record) => record.meta.requiresAuth)) {
+router.beforeEach(async (to, from, next) => {
+  // Verifica se a rota requer autenticação
+  if (to.matched.some(record => record.meta.requiresAuth)) {
     const token = localStorage.getItem("token");
-    if (token) {
-      next();
-    } else {
-      next({ name: "login" });
+    if (!token) {
+      return next({ name: "login" });
     }
-  } else {
-    next();
   }
+
+  // Se a rota exigir a existência de produto, faça a verificação no banco
+  if (to.matched.some(record => record.meta.requiresProduct)) {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await fetch('https://qualiotbackend.onrender.com/products', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `${token}`,
+        },
+      });
+      if (!response.ok) {
+        throw new Error("Erro ao buscar produtos");
+      }
+      const data = await response.json();
+      // Verifica se o array de produtos possui pelo menos um item
+      if (data.product && data.product.length > 0) {
+        return next();
+      } else {
+        alert("Você precisa ter ao menos um produto cadastrado para acessar esta rota.");
+        return next({ name: "produtos" });
+      }
+    } catch (error) {
+      console.error("Erro ao verificar produtos:", error);
+      alert("Erro ao verificar produtos. Tente novamente.");
+      return next({ name: "produtos" });
+    }
+  }
+
+  // Se não houver nenhuma restrição, segue normalmente
+  next();
 });
 
 

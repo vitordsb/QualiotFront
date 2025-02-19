@@ -5,9 +5,13 @@ import { RouterView } from 'vue-router';
 
 <template>
   <Header/>
-    <Transition name="router" mode="default">
-      <RouterView/>
-    </Transition>
+    <transition name="fade" mode="out-in">
+    <keep-alive>
+      <router-view v-slot="{ Component }">
+        <component :is="Component" />
+      </router-view>
+    </keep-alive>
+  </transition>
 </template>
 
 <style>
@@ -29,14 +33,6 @@ import { RouterView } from 'vue-router';
   }
 }
 
-body {
-    background: linear-gradient(100deg, #ffffff, white ,#BAE2FC);
-    background-repeat: no-repeat;
-    height: 100vh;
-    @media (max-width: 768px) {
-    height: auto;
-  }
-}
 .router-enter-from {
   opacity: 0;
   transform: translateX(10px);
