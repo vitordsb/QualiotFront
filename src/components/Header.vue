@@ -40,6 +40,7 @@
         </RouterLink>
 
         <RouterLink 
+          v-if="temProduto"
           to="/cadastrados" 
           :class="{ active: activeLink === '/cadastrados' }" 
           @click.native="setActiveLink('/cadastrados')"
