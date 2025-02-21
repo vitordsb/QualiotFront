@@ -4,10 +4,10 @@ import { RouterView } from 'vue-router';
 </script>
 
 <template>
-  <Header/>
     <transition name="fade" mode="out-in">
     <keep-alive>
       <router-view v-slot="{ Component }">
+        <Header/>
         <component :is="Component" />
       </router-view>
     </keep-alive>
@@ -29,7 +29,6 @@ import { RouterView } from 'vue-router';
   input[type="number"]::-webkit-inner-spin-button, 
   input[type="number"]::-webkit-outer-spin-button {
     -webkit-appearance: none;
-    margin: 0;
   }
 }
 

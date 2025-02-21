@@ -61,6 +61,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
+
 const abaAtiva = ref('cadastrar');
 const produto = ref({ nome: '', descricao: '' });
 const produtos = ref([]);
@@ -69,6 +70,7 @@ const backendURL = 'https://qualiotbackend.onrender.com/products';
 onMounted( async () => {
   await listarProdutos();
 });
+
 const listarProdutos = async () => {
   abaAtiva.value = 'listar';
   try {

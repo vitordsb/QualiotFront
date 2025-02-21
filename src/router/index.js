@@ -69,6 +69,7 @@ router.beforeEach(async (to, from, next) => {
         throw new Error("Erro ao buscar produtos");
       }
       const data = await response.json();
+      
       // Verifica se o array de produtos possui pelo menos um item
       if (data.product && data.product.length > 0) {
         return next();

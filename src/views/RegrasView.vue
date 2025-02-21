@@ -170,14 +170,17 @@ const setActiveTab = (index) => {
           </button>
         </div>
       </div>
-      <button @click="adicionarTab" class="addAba">+</button>
+      <div class="add">
+        <button @click="adicionarTab" class="addAba">+</button>
+        <p>New tab</p>
+      </div>
     </div>
     <div class="conteudo">
       <div class="grid-container">
         <div class="formulario">
           <transition name="fade-horizontal" mode="out-in">
             <div :key="activeIndex" class="tab-content">
-              <h2>{{ tabs[activeIndex]?.title }}</h2>
+              <h2>Categoria: {{ tabs[activeIndex]?.title }}</h2>
               <FormVue :key="activeIndex" :tab-index="activeIndex" />
             </div>
           </transition>
@@ -191,14 +194,15 @@ const setActiveTab = (index) => {
 .regras-view {
   display: flex;
   padding: 20px;
+  transition: calc(.3s);
 }
 .abas {
   display: flex;
+  justify-content: start;
   flex-direction: column;
-  align-items: flex-start;
-  width: 100%;
+  align-items: start;
+  margin-right: 30px;
   gap: 10px;
-  margin-bottom: 20px;
 }
 .tabs-container {
   display: flex;
@@ -211,7 +215,18 @@ const setActiveTab = (index) => {
   position: relative;
   display: inline-block;
 }
+.add {
+  cursor: default;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  p {
+    font-weight: bold;
+  }
+}
 .tab-button {
+  font-weight: bolder;
   border: none;
   width: 130px;
   padding: 10px 10px;
@@ -223,10 +238,15 @@ const setActiveTab = (index) => {
   font-size: 18px;
   transition: background-color 0.3s, transform 0.3s;
 }
-.tab-button.active {
+.tab-button:hover {
   background-color: #007bff;
   color: white;
   transform: scale(1.05);
+}
+.tab-button.active {
+  background-color: #007bff;
+  color: white;
+  transform: scale(1.10);
 }
 .tab-button.inactive {
   opacity: 0.6;
@@ -234,11 +254,12 @@ const setActiveTab = (index) => {
 }
 .btn-removerTab {
   position: absolute;
+  top: 2px;
   right: -10px;
   background-color: #ff4658;
   color: white;
   border: none;
-  border-radius: 50%;
+  border-radius: 30%;
   width: 40px;
   height: 40px;
   font-size: 14px;
@@ -252,10 +273,10 @@ const setActiveTab = (index) => {
 .addAba {
   background-color: #28a745;
   color: white;
-  font-size: 24px;
+  font-size: 20px;
   border-radius: 50%;
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -265,28 +286,18 @@ const setActiveTab = (index) => {
 }
 .addAba:hover {
   background-color: #218838;
-  transform: scale(1.1);
-}
-.grid-container {
-  display: flex;
-  align-items: flex-start;
-  width: 100%;
-  justify-content: flex-start;
-  flex-wrap: wrap;
-}
-.tab-content {
-  min-height: auto;
+  transform: scale(1.05);
 }
 .tab-content h2 {
   text-align: start;
-  font-size: 48px;
-  color: #333;
+  padding: 15px;
+  font-size: 58px;
+  color: #000000;
 }
 .formulario {
   width: 100%;
-  border-radius: 15px;
+  border-radius: 10px;
   padding: 20px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 .fade-horizontal-enter-active,
 .fade-horizontal-leave-active {

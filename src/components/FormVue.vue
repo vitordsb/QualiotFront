@@ -1,5 +1,6 @@
 <script setup>
 import { defineProps, ref, onMounted, watch } from 'vue';
+
 const props = defineProps({
   tabIndex: {
     type: Number,
@@ -58,35 +59,7 @@ const enviarJustificativas = async () => {
     console.error('Erro ao enviar justificativas:', error);
   }
 };
-const atualizarJustificativa = async () => {
-  try {
-    const token = localStorage.getItem('token');
-    for (let i = 0; i < justificativa.value.length; i++) {
-      const justificationId = localStorage.getItem(`justification_tab_${props.tabIndex}_${i}`);
-      if (justificationId) {
-        const response = await fetch(`https://qualiotbackend.onrender.com/justifications/${justificationId}`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `${token}`,
-          },
-          body: JSON.stringify({
-            justification: justificativa.value[i],
-            _idQuestionCategory: localStorage.getItem(`perguntasId_tab_${props.tabIndex}`),
-          }),
-        });
-        const data = await response.json();
-        console.log(`Justificativa atualizada com sucesso para a pergunta ${i}:`, data);
-      } else {
-        console.log(`Nenhuma justificativa existente para a pergunta ${i}. Se for o caso, utilize o método "enviarJustificativas".`);
-      }
-    }
-    buscarJustificativa();
-  } catch (error) {
-    console.error('Erro ao atualizar justificativas:', error);
-    alert('Erro ao atualizar as justificativas. Tente novamente.');
-  }
-};
+
 const distribuirPesos = () => {
   const numPerguntas = perguntas.value.length;
   switch (numPerguntas) {
@@ -163,7 +136,7 @@ const removerPergunta = async (index) => {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
+        Authorization: `${token}`,
       },
     });
     if (!response.ok) {
@@ -201,7 +174,7 @@ const buscarPerguntas = async () => {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          Authorization: `${token}`,
         },
       }
     );
@@ -243,7 +216,7 @@ const updateQuestionGrades = async () => {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
+        Authorization: `${token}`,
       },
       body: JSON.stringify({ grade: gradeValue }),
     });
@@ -354,13 +327,15 @@ onMounted(async () => {
 
 <template>
   <div class="form">
+
     <div v-if="isLoading" class="loading-overlay">
       <div class="spinner"></div>
       <p>Carregando, por favor aguarde...</p>
-    </div>
-    <div v-else>
+    </div><!-- loading-overlay -->
+
+    <div v-else class="form-container">
       <div class="questionario">
-        <form @submit.prevent>
+        <form @submit.prevent class="perguntas">
           <div class="pergunta" v-for="(pergunta, index) in perguntas" :key="index">
             <div class="info">
               <label :for="'pergunta' + index">{{ pergunta }}:</label>
@@ -389,46 +364,47 @@ onMounted(async () => {
               Excluir
             </button>
           </div>
-        </form>
+        </form><!-- form -->
       </div>
       <div class="botoes">
-        <button @click="adicionarPergunta" class="btn btn-adicionar">
-          Adicionar questão
-        </button>
-        <button @click="calcularMediaAba" class="btn btn-primary">
-          Calcular média
-        </button>
-        <button @click="enviarJustificativas" class="btn btn-primary">
-          Enviar/Atualizar justificativas
-        </button>
-      </div>
-      <div class="calculos">
-        <div class="mediaCalculateFinal">
-          <div class="title">
-            <h1>Média Final:</h1>
-          </div>
-          <div class="nota">
-            {{ finalGrade }}
-          </div>
+        <div class="buttons">
+          <button @click="adicionarPergunta" class="btn btn-adicionar">
+            Adicionar questão
+          </button>
+          <button @click="calcularMediaAba" class="btn btn-primary">
+            Calcular média
+          </button>
+          <button @click="enviarJustificativas" class="btn btn-primary">
+            Enviar/Atualizar justificativas
+          </button>
         </div>
-        <div class="mediaCalculate">
-          <div class="title">
-            <h1>Nota da categoria:</h1>
+        <div class="calculos">
+          <div class="mediaCalculateFinal">
+            <div class="title">
+              <h1>Média Final:</h1>
+            </div>
+            <div class="nota">
+              {{ finalGrade }}
+            </div>
           </div>
-          <div class="nota">
-            {{ media }}
+          <div class="mediaCalculate">
+            <div class="title">
+              <h1>Nota da categoria:</h1>
+            </div>
+            <div class="nota">
+              {{ media }}
+            </div>
           </div>
-        </div>
-      <div class="proeficientContainer" :class="proeficiencia">
-        <div class="title">
-          <h1>Nível de Proeficiência:</h1>
-        </div>
-        <div class="nota">
-          {{ proeficiencia.charAt(0).toUpperCase() + proeficiencia.slice(1) }}
-        </div>
-      </div>
-      </div>
-
+          <div class="proeficientContainer" :class="proeficiencia">
+            <div class="title">
+              <h1>Nível de Proeficiência:</h1>
+            </div>
+            <div class="nota">
+              {{ proeficiencia.charAt(0).toUpperCase() + proeficiencia.slice(1) }}
+            </div>
+          </div>
+        </div><!-- calculos -->
+      </div><!-- botoes -->
 
     </div>
   </div>
@@ -437,30 +413,47 @@ onMounted(async () => {
 <style scoped>
 .form {
   display: flex;
+  height: auto;
+  width: 100%;
   border-radius: 15px;
 }
-.questionario {
+.form-container {
   display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: start;
+  width: 100%;
+}
+.questionario {
+  width: 100%;
+  display: flex;
 }
 .pergunta {
   display: flex;
   align-items: center;
-  width: auto;
+  border-radius: 10px;
   padding: 10px;
-  border: 1px solid #ddd;
+  width: auto;
+  margin: 5px;
+  border: 2px solid #ddd;
   @media (max-width: 1600px){
       width: auto;
   }
 }
+.perguntas {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  width: 100%;
+}
 .info {
   display: flex;
   align-items: center;
+  justify-content: start;
   gap: 10px;
 }
 .info label {
-  width: 400px;
+  padding: 0px 10px;
+  width: auto;
   text-align: start;
   font-size: 1.2em;
   font-weight: bold;
@@ -473,9 +466,8 @@ onMounted(async () => {
 .info p {
   font-size: 1em;
   color: #555;
-  margin: 0px 50px;
   width: 500px;
-  text-align: center;
+  text-align: start;
   @media (max-width: 1600px){
       width: 350px;
       font-size: 1em;
@@ -486,7 +478,7 @@ onMounted(async () => {
   color: #333;
 }
 .info input {
-  width: 80px;
+  width: 100px;
   padding: 10px;
   font-size: 1.2em;
   text-align: center;
@@ -523,9 +515,12 @@ onMounted(async () => {
 }
 .botoes {
   display: flex;
-  justify-content: center;
+  gap: 50px;
+  margin: 30px 0;
+}
+.buttons {
+  display: flex;
   gap: 10px;
-  margin: 10px 0;
 }
 .btn {
   padding: 10px 10px;
@@ -545,39 +540,37 @@ onMounted(async () => {
   transform: scale(1.02);
 }
 .btn-adicionar {
-  background-color: #28a745;
+  background-color: #00be2cc8;
   color: #fff;
 }
 .btn-adicionar:hover {
-  background-color: #218838;
+  background-color: #54c96d;
   transform: scale(1.02);
 }
 .btn-primary {
-  background-color: #007bff;
+  background-color: #0eb7ff;
   color: #fff;
 }
 .btn-primary:hover {
-  background-color: #0056b3;
+  background-color: #0a81ff;
   transform: scale(1.05);
 }
 .mediaCalculate, .mediaCalculateFinal {
   display: flex;
   align-items: center;
-  gap: 20px;
   padding: 10px;
   border-radius: 10px;
   background-color: #f1f1f1;
 }
 .mediaCalculate h1, .mediaCalculateFinal h1 {
   font-size: 1.5em;
-  margin: 0;
-  color: #333;
+  color: #000000;
   @media (max-width: 1600px){
       font-size: 1.2em;
   }
 }
 .nota {
-  font-weight: 700;
+  font-weight: bold;
   font-size: 1.5em;
   @media (max-width: 1600px){
       font-size: 1.2em;

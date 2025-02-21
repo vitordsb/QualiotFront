@@ -83,12 +83,13 @@ async function verificarProdutos() {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        'Authorization': `${token}`,
       },
     });
     if (!response.ok) {
       throw new Error('Erro ao buscar produtos');
     }
+    //recarrega a pagina uma vez 
     const data = await response.json();
     // Supondo que o backend retorne os produtos em data.product
     temProduto.value = data.product && data.product.length > 0;
@@ -129,15 +130,16 @@ function setActiveLink(path) {
 
 <style scoped>
 .header {
+  padding: 10px;
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
+  border-bottom: #c9c9c986 2px solid;
 }
 
 .container {
-  padding: 0px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
