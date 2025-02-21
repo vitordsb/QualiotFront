@@ -193,7 +193,7 @@ const setActiveTab = (index) => {
 <style scoped>
 .regras-view {
   display: flex;
-  padding: 20px;
+  padding: 10px;
   transition: calc(.3s);
 }
 .abas {
@@ -297,7 +297,6 @@ const setActiveTab = (index) => {
 .formulario {
   width: 100%;
   border-radius: 10px;
-  padding: 20px;
 }
 .fade-horizontal-enter-active,
 .fade-horizontal-leave-active {
@@ -316,4 +315,42 @@ const setActiveTab = (index) => {
     flex-direction: column;
   }
 }
+/* Novos estilos responsivos para telas menores */
+@media (max-width: 480px) {
+  .regras-view {
+    flex-direction: column;
+    padding: 5px;
+  }
+  .abas {
+    align-items: center;
+  }
+  .tabs-container {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .tab-button {
+    width: auto;
+    font-size: 15px;
+    padding: 8px;
+  }
+  .tab-content h2 {
+    font-size: 30px;
+    padding: 10px;
+    text-align: center;
+  }
+  .btn-removerTab {
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+    right: -15px;
+  }
+  .addAba {
+    width: 35px;
+    height: 35px;
+    font-size: 18px;
+  }
+}
+
 </style>

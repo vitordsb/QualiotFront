@@ -44,7 +44,7 @@
           :class="{ active: activeLink === '/cadastrados' }" 
           @click.native="setActiveLink('/cadastrados')"
         >
-          Ver cadastrados
+          Usuários cadastrados
         </RouterLink>
       </nav>
 

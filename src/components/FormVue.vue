@@ -414,17 +414,17 @@ onMounted(async () => {
 .form {
   display: flex;
   height: auto;
-  width: 100%;
+  width: auto;
   border-radius: 15px;
 }
 .form-container {
   display: flex;
   flex-direction: column;
   align-items: start;
-  width: 100%;
+  width: auto;
 }
 .questionario {
-  width: 100%;
+  width: auto;
   display: flex;
 }
 .pergunta {
@@ -432,7 +432,8 @@ onMounted(async () => {
   align-items: center;
   border-radius: 10px;
   padding: 10px;
-  width: auto;
+  justify-content: space-around;
+  width: 100%;
   margin: 5px;
   border: 2px solid #ddd;
   @media (max-width: 1600px){
@@ -449,7 +450,7 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: start;
-  gap: 10px;
+  gap: 50px;
 }
 .info label {
   padding: 0px 10px;
@@ -466,8 +467,9 @@ onMounted(async () => {
 .info p {
   font-size: 1em;
   color: #555;
-  width: 500px;
-  text-align: start;
+  width: 400px;
+  word-wrap: break-word;
+  text-align: justify;
   @media (max-width: 1600px){
       width: 350px;
       font-size: 1em;
@@ -491,7 +493,7 @@ onMounted(async () => {
 }
 .justificativa-group {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 5px;
 }
 .justificativa-group span {
@@ -514,8 +516,9 @@ onMounted(async () => {
   box-shadow: 0 0 5px rgba(0,123,255,0.5);
 }
 .botoes {
+  width: 100%;
   display: flex;
-  gap: 50px;
+  justify-content: space-between;
   margin: 30px 0;
 }
 .buttons {
@@ -553,7 +556,7 @@ onMounted(async () => {
 }
 .btn-primary:hover {
   background-color: #0a81ff;
-  transform: scale(1.05);
+  transform: scale(1.02);
 }
 .mediaCalculate, .mediaCalculateFinal {
   display: flex;
@@ -639,4 +642,38 @@ onMounted(async () => {
   from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+/* Novos estilos responsivos */
+@media (max-width: 768px) {
+  .form {
+    flex-direction: column;
+    padding: 10px;
+    width: auto;
+  }
+  .questionario {
+    flex-direction: column;
+  }
+  .pergunta {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 15px;
+    width: auto;
+  }
+  .info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+  .info p {
+    width: 100%;
+  }
+  .pergunta textarea {
+    width: 100%;
+  }
+  .botoes {
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+}
+
 </style>

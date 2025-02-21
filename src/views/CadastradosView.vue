@@ -12,7 +12,6 @@
               <h3>{{ cadastro.name }}</h3>
               <p><strong>Email:</strong> {{ cadastro.email }}</p>
               <p><strong>ID:</strong> {{ cadastro._id }}</p>
-              <p><strong>Senha:</strong> {{ cadastro.password }}</p>
             </div>
             <div class="botoes">
               <button @click="alterarCadastro(index)" class="btn-alterar">Alterar</button>
@@ -107,10 +106,10 @@
   
   <style scoped>
   .lista-cadastrados {
-    padding: 20px;
+    padding: 20px 0px;
     display: flex;
-    width: 100%;
-    justify-content: center;
+    width: auto;
+    justify-content: space-around;
     align-items: center;
     height: auto;
     border-radius: 10px;
@@ -148,12 +147,13 @@
   }
   
   .cadastros {
+    margin-top: 40px;
     list-style-type: none;
-    padding: 0;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 50px;
+    justify-content: space-around;
+    width: auto;
     display: grid;
-    margin: 50px;
   }
   .infos {
     display: flex;

@@ -19,7 +19,7 @@ import { RouterView } from 'vue-router';
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  font-family: Geist Mono;
   input[type="number"] {
     -moz-appearance: textfield; 
     -webkit-appearance: none; 
