@@ -1,48 +1,52 @@
 <template>
   <Transition name="fade-horizontal">
   <div class="register-page">
-    <div class="register-container">
-      <h2>Registre-se</h2>
-      <form @submit.prevent="handleRegister">
-        <div class="form-group">
-          <label for="name">Nome</label>
-          <input
-            type="text"
-            id="name"
-            v-model="name"
-            placeholder="Digite seu nome"
-            required
-          />
-        </div>
-        <div class="form-group">
-          <label for="email">Email</label>
-          <input
-            type="email"
-            id="email"
-            v-model="email"
-            placeholder="Digite seu email"
-            required
-          />
-        </div>
-        <div class="form-group">
-          <label for="password">Senha</label>
-          <input
-            type="password"
-            id="password"
-            v-model="password"
-            placeholder="Digite sua senha"
-            required
-          />
-        </div>
-        <button type="submit" class="register-button">Registrar</button>
-      </form>
-      <p class="login-link">
-        Já tem uma conta? <RouterLink to="/">Faça login aqui</RouterLink>
-      </p>
-      <p :class="['message', messageType]" v-if="message">{{ message }}</p>
-      <div v-if="isLoading" class="spinner"></div>
+    <div class="containerRegister">
+      <div class="register-container">
+        <h2>Crie seu registro!</h2>
+        <form @submit.prevent="handleRegister">
+          <div class="form-group">
+            <label for="name">Nome</label>
+            <input
+              type="text"
+              id="name"
+              v-model="name"
+              placeholder="Digite seu nome"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input
+              type="email"
+              id="email"
+              v-model="email"
+              placeholder="Digite seu email"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="password">Senha</label>
+            <input
+              type="password"
+              id="password"
+              v-model="password"
+              placeholder="Digite sua senha"
+              required
+            />
+          </div>
+          <button type="submit" class="register-button">Registrar</button>
+        </form>
+        <p class="login-link">
+          Já tem uma conta? <RouterLink to="/">Faça login aqui</RouterLink>
+        </p>
+        <p :class="['message', messageType]" v-if="message">{{ message }}</p>
+        <div v-if="isLoading" class="spinner"></div>
+      </div>
     </div>
-    <img src="/public/assets/logo/qualiot.png" alt="">
+    <div class="imageRegister">
+      <img src="/public/assets/logo/qualiot.png" alt="">
+    </div>
   </div>
 </Transition>
 </template>
@@ -112,9 +116,6 @@ const handleRegister = async () => {
   align-items: center;
   justify-content: center;
   height: 100vh;
-  gap: 50px;
-  background: linear-gradient(135deg, #00c6ff, #fff);
-  padding: 30px;
   @media (max-width: 700px){
       padding: 30px;
       height: auto;
@@ -122,21 +123,38 @@ const handleRegister = async () => {
   }
 }
 
+.containerRegister {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.imageRegister {
+  box-shadow: #00c6ff 0px 5px 10px 5px;
+  background-color: #4CB7FF;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
 img {
-  width: 450px;
-  border-radius: 50%;
+  width: 800px;
 }
 
 .register-container {
   width: 100%;
   max-width: 550px;
-  padding: 50px;
+  padding: 40px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   background: #ffffff;
   border-radius: 15px;
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+  border: 1px solid #b7b7b7;
   text-align: center;
   transition: transform 0.3s ease;
 }
@@ -187,10 +205,10 @@ input[type="password"]:focus {
 }
 
 .register-button {
-  margin-top: 20px;
-  width: 100%;
+  margin-top: 10px;
+  width: 50%;
   padding: 12px;
-  background: linear-gradient(135deg, #00c6ff, #0072ff);
+  background-color: #007bff;
   border: none;
   border-radius: 8px;
   color: #fff;
@@ -202,7 +220,7 @@ input[type="password"]:focus {
 }
 
 .register-button:hover {
-  background: linear-gradient(135deg, #0072ff, #0056b3);
+  background-color: #0056b3;
   transform: translateY(-3px);
 }
 

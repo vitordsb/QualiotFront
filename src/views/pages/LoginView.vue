@@ -1,41 +1,45 @@
 <template>
   <Transition name="fade-horizontal">
   <div class="login-page">
-    <img src="/public/assets/logo/qualiot.png" alt="">
-    <div class="login-container">
-      <h2>Login</h2>
 
-      <form @submit.prevent="handleLogin">
-        <div class="form-group">
-          <label for="email">Email</label>
-          <input
-            type="email"
-            id="email"
-            v-model="email"
-            placeholder="Digite seu email"
-            required
-          />
-        </div>
-
-        <div class="form-group">
-          <label for="password">Senha</label>
-          <input
-            type="password"
-            id="password"
-            v-model="password"
-            placeholder="Digite sua senha"
-            required
-          />
-        </div>
-        <button type="submit" class="login-button">Entrar</button>
-      </form>
-      <p class="register-link">
-        Não tem uma conta? <RouterLink to="/register">Registre-se aqui</RouterLink>
-      </p>
-      <p :class="['message', messageType]" v-if="message">{{ message }}</p>
-        <div v-if="isLoading" class="spinner"></div>
+    <div class="image">
+      <img src="/public/assets/logo/qualiot.png" alt="">
     </div>
-  </div>
+
+    <div class="formLogin">
+      <div class="login-container">
+        <h2>Acesse a sua conta</h2>
+        <form @submit.prevent="handleLogin">
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input
+              type="email"
+              id="email"
+              v-model="email"
+              placeholder="Digite seu email"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="password">Senha</label>
+            <input
+              type="password"
+              id="password"
+              v-model="password"
+              placeholder="Digite sua senha"
+              required
+            />
+          </div>
+          <button type="submit" class="login-button">Entrar</button>
+        </form>
+        <p class="register-link">
+          Não tem uma conta? <RouterLink to="/register">Registre-se aqui</RouterLink>
+        </p>
+        <p :class="['message', messageType]" v-if="message">{{ message }}</p>
+          <div v-if="isLoading" class="spinner"></div>
+      </div>
+        </div>
+    </div>
     </Transition>
 </template>
 
@@ -108,11 +112,12 @@ const handleLogin = async () => {
 
 .login-page {
   display: flex;
-  gap: 50px;
+  gap: 10px;
+  width: 100%;
   align-items: center;
   justify-content: center;
   height: 100vh;
-  background: linear-gradient(105deg, #fff, #00c6ff);
+
   @media (max-width: 700px){
       padding: 30px;
       height: auto;
@@ -121,17 +126,36 @@ const handleLogin = async () => {
 }
 
 img {
-  width: 450px;
-  border-radius: 50%;
+  width: 750px;
+
   @media (max-width: 700px){
       width: 250px;
   }
 }
+.formLogin {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+.image {
+  box-shadow: #4CB7FF 5px 5px 10px;
+  flex-direction: column;
+  background-color: #4CB7FF;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+}
 
 .login-container {
+  border: 1px solid #b7b7b7;
   width: 100%;
-  max-width: 500px;
-  padding: 60px;
+  max-width: 600px;
+  padding: 50px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -186,9 +210,9 @@ input[type="password"]:focus {
 
 .login-button {
   margin-top: 20px;
-  width: 100%;
+  width: 40%;
   padding: 12px;
-  background: linear-gradient(135deg, #00c6ff, #0072ff);
+  background-color: #007bff;
   border: none;
   border-radius: 8px;
   color: #fff;
@@ -200,7 +224,7 @@ input[type="password"]:focus {
 }
 
 .login-button:hover {
-  background: linear-gradient(135deg, #0072ff, #0056b3);
+  background-color: #0056b3;
   transform: translateY(-3px);
 }
 

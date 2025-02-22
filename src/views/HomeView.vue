@@ -3,31 +3,29 @@ import { RouterView } from 'vue-router';
 </script>
 
 <template>
-  <transition name="fade" mode="out-in">
-    <keep-alive>
-      <router-view v-slot="{ Component }">
-        <component :is="Component" />
-      </router-view>
-    </keep-alive>
+  <transition name="slide-fade" mode="out-in">
+      <RouterView/>
   </transition>
 </template>
 
-
 <style scoped>
 
+.slide-fade-enter-from {
+  opacity: 0;
+  transform: translateX(30px);
+}
 
-.router-enter-from {
+.slide-fade-enter-active {
+  transition: all 0.5s ease;
+}
+
+.slide-fade-leave-to {
   opacity: 0;
-  transform: translateX(10px);
+  transform: translateX(-30px);
 }
-.router-enter-active {
-  transition: all 0.3s ease-out;
+
+.slide-fade-leave-active {
+  transition: all 0.5s ease;
 }
-.router-leave-to {
-  opacity: 0;
-  transform: translateX(-10px);
-}
-.router-leave-active {
-  transition: all 0.3s ease-out;
-}
+
 </style>

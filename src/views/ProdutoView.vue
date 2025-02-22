@@ -209,12 +209,14 @@ const editarProduto = async (index) => {
 </script>
 
 <style scoped>
+
 .produto-cadastro {
   display: flex;
   flex-direction: column;
   border-radius: 10px;
   max-width: 800px;
   margin: 100px auto;
+
 }
 .abas {
   display: flex;
@@ -393,5 +395,14 @@ const editarProduto = async (index) => {
   to {
     transform: rotate(360deg);
   }
+}
+.fade-horizontal-enter-active,
+.fade-horizontal-leave-active {
+  transition: all 0.5s ease;
+}
+.fade-horizontal-enter-from,
+.fade-horizontal-leave-to {
+  opacity: 0;
+  transform: translateX(-30px);
 }
 </style>

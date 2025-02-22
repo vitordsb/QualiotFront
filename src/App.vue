@@ -4,13 +4,11 @@ import { RouterView } from 'vue-router';
 </script>
 
 <template>
-    <transition name="fade" mode="out-in">
-    <keep-alive>
+    <Header/>
+    <transition name="slide-fade" mode="out-in">
       <router-view v-slot="{ Component }">
-        <Header/>
         <component :is="Component" />
       </router-view>
-    </keep-alive>
   </transition>
 </template>
 
@@ -19,7 +17,7 @@ import { RouterView } from 'vue-router';
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: Geist Mono;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   input[type="number"] {
     -moz-appearance: textfield; 
     -webkit-appearance: none; 
@@ -31,19 +29,28 @@ import { RouterView } from 'vue-router';
     -webkit-appearance: none;
   }
 }
+body {
+  overflow-x: hidden;
+}
 
-.router-enter-from {
+.slide-fade-enter-from {
   opacity: 0;
-  transform: translateX(10px);
+  transform: translateX(30px);
 }
-.router-enter-active {
-  transition: all 0.3s ease-out;
+
+/* Quando está entrando (ativa durante a transição) */
+.slide-fade-enter-active {
+  transition: all 1s ease;
 }
-.router-leave-to {
+
+/* Saindo: vai para a esquerda e some */
+.slide-fade-leave-to {
   opacity: 0;
-  transform: translateX(-10px);
+  transform: translateX(-20px);
 }
-.router-leave-active {
-  transition: all 0.3s ease-out;
+
+/* Quando está saindo (ativa durante a transição) */
+.slide-fade-leave-active {
+  transition: all 1s ease;
 }
 </style>
