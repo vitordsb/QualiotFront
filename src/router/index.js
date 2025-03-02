@@ -47,15 +47,12 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to, from, next) => {
-  // Verifica se a rota requer autenticação
   if (to.matched.some(record => record.meta.requiresAuth)) {
     const token = localStorage.getItem("token");
     if (!token) {
       return next({ name: "login" });
     }
   }
-
-  // Se a rota exigir a existência de produto, faça a verificação no banco
   if (to.matched.some(record => record.meta.requiresProduct)) {
     const token = localStorage.getItem("token");
     try {
@@ -71,7 +68,6 @@ router.beforeEach(async (to, from, next) => {
       }
       const data = await response.json();
       
-      // Verifica se o array de produtos possui pelo menos um item
       if (data.product && data.product.length > 0) {
         return next();
       } else {
@@ -84,10 +80,8 @@ router.beforeEach(async (to, from, next) => {
       return next({ name: "produtos" });
     }
   }
-
-  // Se não houver nenhuma restrição, segue normalmente
   next();
-});
+})
 
 
 export default router;

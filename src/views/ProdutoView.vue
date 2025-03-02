@@ -60,15 +60,30 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-
+import { ref, onMounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
 const abaAtiva = ref('cadastrar');
 const produto = ref({ nome: '', descricao: '' });
 const produtos = ref([]);
 const isLoading = ref(false);
 const backendURL = 'https://qualiotbackend.onrender.com/products';
-onMounted( async () => {
+
+const router = useRouter();
+const isReloading = ref(false);
+
+
+onMounted(async () => {
   await listarProdutos();
+  watch(() => {
+    if (isReloading.value) {
+      isReloading.value = true;
+      router.go(0);
+    }
+  })
+  if (!localStorage.getItem('reloadDone')) {
+    localStorage.setItem('reloadDone', 'true');
+    router.go(0);
+  }
 });
 
 const listarProdutos = async () => {

@@ -1,10 +1,13 @@
 <script setup>
 import { defineProps, ref, onMounted, watch } from 'vue';
-
 const props = defineProps({
   tabIndex: {
     type: Number,
     required: true,
+  },
+  totalTabs: {
+    type: Number,
+    default: 1,
   },
 });
 const justificativa = ref([]);
@@ -14,10 +17,6 @@ const isLoading = ref(true);
 const notas = ref([]);
 const pesos = ref([]);
 const media = ref(0);
-const finalGrade = ref(0);
-const proeficiencia = ref('não avaliado');
-proeficiencia.value = 'não avaliado';
-
 watch(isLoading, (newValue) => {
   const overlay = document.querySelector('.loading-overlay');
   if (overlay) {
@@ -28,8 +27,16 @@ watch(isLoading, (newValue) => {
     }
   }
 });
+watch(
+  notas,
+  (newNotas) => {
+    localStorage.setItem(`notas_tab_${props.tabIndex}`, JSON.stringify(newNotas));
+  },
+  { deep: true }
+);
 const enviarJustificativas = async () => {
   try {
+    isLoading.value = true;
     const token = localStorage.getItem('token');
     const storedPerguntasId = localStorage.getItem(`perguntasId_tab_${props.tabIndex}`);
     if (!storedPerguntasId) {
@@ -54,12 +61,13 @@ const enviarJustificativas = async () => {
         console.log(data);
       }
     }
+    isLoading.value = false;
     buscarJustificativa();
   } catch (error) {
+    isLoading.value = false;
     console.error('Erro ao enviar justificativas:', error);
   }
 };
-
 const distribuirPesos = () => {
   const numPerguntas = perguntas.value.length;
   switch (numPerguntas) {
@@ -67,16 +75,16 @@ const distribuirPesos = () => {
       pesos.value = [10];
       break;
     case 2:
-      pesos.value = [5, 5];
+      pesos.value = [6, 4];
       break;
     case 3:
       pesos.value = [4, 3, 3];
       break;
     case 4:
-      pesos.value = [4, 3, 3, 2];
+      pesos.value = [4, 3, 2, 1];
       break;
     case 5:
-      pesos.value = [4, 3, 3, 2, 2];
+      pesos.value = [3, 2, 2, 2, 1];
       break;
     default:
       const basePeso = 3;
@@ -84,6 +92,7 @@ const distribuirPesos = () => {
       break;
   }
 };
+
 const adicionarPergunta = async () => {
   try {
     isLoading.value = true;
@@ -122,6 +131,7 @@ const adicionarPergunta = async () => {
     isLoading.value = false;
   }
 };
+
 const removerPergunta = async (index) => {
   try {
     isLoading.value = true;
@@ -163,6 +173,7 @@ const removerPergunta = async (index) => {
     isLoading.value = false;
   }
 };
+
 const buscarPerguntas = async () => {
   try {
     isLoading.value = true;
@@ -181,6 +192,7 @@ const buscarPerguntas = async () => {
     if (!response.ok) {
       throw new Error('Erro ao buscar perguntas.');
     }
+    conectarProduto();
     const data = await response.json();
     const perguntaId = data.questionCategory.map((pergunta) => pergunta._id);
     notas.value = data.questionCategory.map((pergunta) => pergunta.grade);
@@ -195,86 +207,92 @@ const buscarPerguntas = async () => {
     localStorage.setItem(`pesos_tab_${props.tabIndex}`, JSON.stringify(pesos.value));
   } catch (error) {
     console.error('Erro ao buscar perguntas:', error);
-    alert('Erro ao buscar perguntas. Tente novamente.');
   } finally {
     isLoading.value = false;
-    computeFinalGrade();
   }
 };
+
 const updateQuestionGrades = async () => {
+  isLoading.value = true;
   const storedPerguntasId = localStorage.getItem(`perguntasId_tab_${props.tabIndex}`);
   if (!storedPerguntasId) return;
   const perguntasIdArray = JSON.parse(storedPerguntasId);
   const token = localStorage.getItem('token');
   let storedNotas = JSON.parse(localStorage.getItem(`notas_tab_${props.tabIndex}`)) || [];
-  for (let i = 0; i < perguntasIdArray.length; i++) {
+  
+  const updatePromises = perguntasIdArray.map((id, i) => {
     let gradeValue = parseFloat(notas.value[i]);
     if (isNaN(gradeValue)) {
       gradeValue = storedNotas[i] !== undefined ? storedNotas[i] : 0;
     }
-    const response = await fetch(`https://qualiotbackend.onrender.com/questions/${perguntasIdArray[i]}`, {
+    return fetch(`https://qualiotbackend.onrender.com/questions/${id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `${token}`,
       },
       body: JSON.stringify({ grade: gradeValue }),
+    }).then(response => {
+      isLoading.value = false
+      if (!response.ok) {
+        isLoading.value = false;
+        return response.json().then(errorData => {
+          console.error(`Erro ao atualizar grade para a pergunta ${id}`, errorData);
+        });
+      }
     });
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error(`Erro ao atualizar grade para a pergunta ${perguntasIdArray[i]}`, errorData);
-    }
+  });
+  
+  await Promise.all(updatePromises);
+};
+
+const conectarProduto = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch('https://qualiotbackend.onrender.com/products', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `${token}`,
+      },
+    });
+    const data = await response.json();
+    console.log(data);
+    const proeficiency = data.product[0].proficiency;
+    const notaFinal = data.product[0].finalGrade;
+    localStorage.setItem('proeficiency', proeficiency);
+    localStorage.setItem('finalGrade', notaFinal);
+  } catch (error) {
+    console.error('Erro ao conectar ao produto:', error);
+    if (error.message === 'Failed to fetch') {
+      alert('Erro ao conectar ao produto. Tente novamente.');
+    } 
   }
 };
+
 const calcularMediaAba = async () => {
   isLoading.value = true;
-  try {
-    await updateQuestionGrades();
-    await buscarPerguntas();
-    let somaPesos = 0;
-    let somaPonderada = 0;
-    for (let i = 0; i < perguntas.value.length; i++) {
-      let notaAtual = parseFloat(notas.value[i]);
-      if (isNaN(notaAtual)) {
-        notaAtual = 0;
-      }
-      const peso = pesos.value[i] || 0;
-      somaPonderada += notaAtual * peso;
-      somaPesos += peso;
+  let somaPesos = 0;
+  let somaPonderada = 0;
+  for (let i = 0; i < perguntas.value.length; i++) {
+    let notaAtual = parseFloat(notas.value[i]);
+    if (isNaN(notaAtual)) {
+      notaAtual = 0;
     }
-    const resultadoMedia = somaPesos > 0 ? (somaPonderada / somaPesos) : 0;
-    media.value = Number(resultadoMedia.toFixed(2));
-    localStorage.setItem(`media_tab_${props.tabIndex}`, media.value.toFixed(2));
-    computeFinalGrade();
-    await buscarJustificativa();
-  } catch (error) {
-    console.error('Erro ao calcular a média ponderada:', error);
-    alert('Erro ao calcular a média. Tente novamente.');
-  } finally {
-    isLoading.value = false;
+    const peso = pesos.value[i] || 0;
+    somaPonderada += notaAtual * peso;
+    somaPesos += peso;
   }
+  const resultadoMedia = somaPesos > 0 ? (somaPonderada / somaPesos) : 0;
+  media.value = Number(resultadoMedia.toFixed(2));
+  isLoading.value = false;
+  localStorage.setItem(`notas_tab_${props.tabIndex}`, JSON.stringify(notas.value));
+  
+  localStorage.setItem(`notaAba_tab_${props.tabIndex}`, media.value);
+  
+  updateQuestionGrades();
 };
-const computeFinalGrade = () => {
-  let somaMedias = 0;
-  let contadorMedias = 0;
-  for (let key in localStorage) {
-    if (key.startsWith('media_tab_')) {
-      const mediaAba = parseFloat(localStorage.getItem(key)) || 0;
-      somaMedias += mediaAba;
-      contadorMedias += 1;
-    }
-  }
-  const mediaFinal = contadorMedias > 0 ? somaMedias / contadorMedias : 0;
-  finalGrade.value = Number(mediaFinal.toFixed(2));
-  if (finalGrade.value < 5) {
-    proeficiencia.value = 'baixo';
-  } else if (finalGrade.value <= 8) {
-    proeficiencia.value = 'médio';
-  } else {
-    proeficiencia.value = 'alto';
-  }
-  localStorage.setItem('finalGrade', finalGrade.value);
-};
+
 const buscarJustificativa = async () => {
   try {
     const storedPerguntasId = localStorage.getItem(`perguntasId_tab_${props.tabIndex}`);
@@ -308,31 +326,33 @@ const buscarJustificativa = async () => {
     console.error('Erro ao buscar justificativa:', error);
   }
 };
+
 onMounted(async () => {
   isLoading.value = true;
   try {
-    await calcularMediaAba();
+    const notasSalvas = localStorage.getItem(`notas_tab_${props.tabIndex}`);
+    if (notasSalvas) {
+      notas.value = JSON.parse(notasSalvas);
+      distribuirPesos();
+      calcularMediaAba();
+    }
     await buscarPerguntas();
+    calcularMediaAba();
     await buscarJustificativa();
-    computeFinalGrade();
   } catch (error) {
     console.error("Erro ao carregar os dados:", error);
   } finally {
-    setTimeout(() => {
-      isLoading.value = false;
-    }, 3000);
+    isLoading.value = false;
   }
 });
 </script>
 
 <template>
   <div class="form">
-
     <div v-if="isLoading" class="loading-overlay">
       <div class="spinner"></div>
       <p>Carregando, por favor aguarde...</p>
-    </div><!-- loading-overlay -->
-
+    </div>
     <div v-else class="form-container">
       <div class="questionario">
         <form @submit.prevent class="perguntas">
@@ -364,7 +384,7 @@ onMounted(async () => {
               Excluir
             </button>
           </div>
-        </form><!-- form -->
+        </form>
       </div>
       <div class="botoes">
         <div class="buttons">
@@ -379,33 +399,16 @@ onMounted(async () => {
           </button>
         </div>
         <div class="calculos">
-          <div class="mediaCalculateFinal">
-            <div class="title">
-              <h1>Média Final:</h1>
-            </div>
-            <div class="nota">
-              {{ finalGrade }}
-            </div>
-          </div>
           <div class="mediaCalculate">
             <div class="title">
-              <h1>Nota da categoria:</h1>
+              <h1>Média da categoria:</h1>
             </div>
             <div class="nota">
               {{ media }}
             </div>
           </div>
-          <div class="proeficientContainer" :class="proeficiencia">
-            <div class="title">
-              <h1>Nível de Proeficiência:</h1>
-            </div>
-            <div class="nota">
-              {{ proeficiencia.charAt(0).toUpperCase() + proeficiencia.slice(1) }}
-            </div>
-          </div>
-        </div><!-- calculos -->
-      </div><!-- botoes -->
-
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -558,14 +561,14 @@ onMounted(async () => {
   background-color: #0a81ff;
   transform: scale(1.02);
 }
-.mediaCalculate, .mediaCalculateFinal {
+.mediaCalculate {
   display: flex;
   align-items: center;
   padding: 10px;
   border-radius: 10px;
   background-color: #f1f1f1;
 }
-.mediaCalculate h1, .mediaCalculateFinal h1 {
+.mediaCalculate h1 {
   font-size: 1.5em;
   color: #000000;
   @media (max-width: 1600px){
@@ -578,26 +581,6 @@ onMounted(async () => {
   @media (max-width: 1600px){
       font-size: 1.2em;
   }
-}
-
-.proeficientContainer {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px;
-  border-radius: 10px;
-  background-color: #f1f1f1;
-  color: #fff;
-}
-.proeficientContainer.baixo {
-  background-color: #dc3545;
-}
-.proeficientContainer.médio {
-  background-color: #ffc107;
-  color: #333;
-}
-.proeficientContainer.alto {
-  background-color: #28a745;
 }
 .calculos {
   display: flex;

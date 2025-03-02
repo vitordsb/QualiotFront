@@ -6,9 +6,9 @@ import { RouterView } from 'vue-router';
 <template>
     <Header/>
     <transition name="slide-fade" mode="out-in">
-      <router-view v-slot="{ Component }">
+      <RouterView v-slot="{ Component }">
         <component :is="Component" />
-      </router-view>
+      </RouterView>
   </transition>
 </template>
 

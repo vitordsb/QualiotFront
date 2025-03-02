@@ -20,8 +20,6 @@
         >
           Cadastrar produtos
         </RouterLink>
-
-        <!-- Exibe somente se houver produto cadastrado no banco -->
         <RouterLink 
           v-if="temProduto" 
           to="/regras" 
@@ -73,10 +71,8 @@ const isRegister = ref(false);
 const activeLink = ref(route.path);
 const userName = computed(() => auth.userName);
 
-// Ref que indica se há pelo menos um produto no banco de dados
 const temProduto = ref(false);
 
-// Função para buscar os produtos no banco de dados
 async function verificarProdutos() {
   try {
     const token = localStorage.getItem('token');
@@ -90,17 +86,16 @@ async function verificarProdutos() {
     if (!response.ok) {
       throw new Error('Erro ao buscar produtos');
     }
-    //recarrega a pagina uma vez 
     const data = await response.json();
-    // Supondo que o backend retorne os produtos em data.product
-    temProduto.value = data.product && data.product.length > 0;
+    if (data.product && data.product.length > 0) {
+      temProduto.value = true;
+    }
   } catch (error) {
     console.error('Erro ao buscar produtos:', error);
     temProduto.value = false;
   }
 }
 
-// Chama a função quando o componente é montado
 onMounted(() => {
   verificarProdutos();
 });
@@ -113,6 +108,7 @@ watch(route, (newRoute) => {
 
 function logout() {
   clearUser();
+  localStorage.clear()
   router.push('/');
 }
 

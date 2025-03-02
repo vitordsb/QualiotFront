@@ -3,7 +3,7 @@ import { ref, onMounted, watch } from "vue";
 import FormVue from "@/components/FormVue.vue";
 
 const tabs = ref([]);
-const isLoading = ref(false);
+const isLoading = ref(true);
 const activeIndex = ref(0);
 const categorias = ref([]);
 
