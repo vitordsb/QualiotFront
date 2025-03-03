@@ -248,23 +248,17 @@ const exportPDF = () => {
   const element = reportSection.value;
   const opt = {
     margin: 0,
-    filename: 'QualiotRelatorio.pdf',
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2 },
-    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    autoPaging: 'none',
+    filename: 'QualiotReport.pdf',
+    image: { type: 'jpeg', quality: 1 },
+    html2canvas: { scale: 1 },
+    jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' }
   };
   html2pdf().set(opt).from(element).save();
 };
 </script>
 
 <style scoped>
-.relatoriofull {
-  min-height: auto;
-  border-radius: 15px;
-  padding: 20px;
-  background-color: #f2f2f2;
-}
-
 .title {
   font-size: 50px;
   color: #3389ce;
@@ -274,41 +268,43 @@ const exportPDF = () => {
 
 .topo {
   display: flex;
-  justify-content: start;
-  gap: 30px;
-  margin-bottom: 20px;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 10px;
 }
 
 .infos {
   background-color: #3389ce;
-  padding: 20px;
+  padding: 30px;
   border-radius: 10px;
   color: #ffffff;
 }
 
 .relatorio {
+  page-break-inside: avoid;
   display: flex;
   flex-direction: column;
-  gap: 20px;
   border-radius: 15px;
 }
 
 .category-item {
+  page-break-inside: avoid;
   display: flex;
+  padding: 30px;
+  margin: 10px;
   flex-direction: column;
   border: 1px solid #ccc;
   background-color: #f9f9f9;
-  margin-top: 10px;
-  padding: 15px;
-  border-radius: 6px;
+  border-radius: 10px;
 }
 
 .category-item h3 {
   margin-bottom: 5px;
-  font-size: 40px;
+  font-size: 30px;
 }
 
 .final-grade {
+  page-break-inside: avoid;
   font-weight: bold;
   margin-bottom: 10px;
   color: #000000;
@@ -377,15 +373,11 @@ const exportPDF = () => {
 }
 
 .questions {
-  margin-top: 10px;
+  page-break-inside: avoid;
 }
 
 .questions h4 {
-  font-size: 30px;
-  margin-bottom: 10px;
-}
-
-.question-item {
+  font-size: 25px;
   margin-bottom: 10px;
 }
 
@@ -411,7 +403,6 @@ const exportPDF = () => {
 .final-grade-section {
   border-radius: 15px;
   padding: 30px;
-  margin-top: 30px;
   text-align: center;
 }
 
@@ -421,17 +412,16 @@ const exportPDF = () => {
 }
 
 .final-grade-box p {
-  font-size: 24px;
+  font-size: 20px;
   margin: 10px 0;
 }
-
-/* Botão de exportação */
 .export-btn-container {
   text-align: center;
   margin-top: 20px;
 }
 
 .btn-export {
+  page-break-inside: avoid;
   padding: 10px 20px;
   font-size: 18px;
   background-color: #0eb7ff;
