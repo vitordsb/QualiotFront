@@ -7,7 +7,7 @@
     <div class="relatorio" v-else>
       <div class="topo">
         <div class="infos" v-if="relatorio">
-          <h2>{{ relatorio.name }}</h2>
+          <h2>Nome produdo: {{ relatorio.name }}</h2>
           <p>Descrição: {{ relatorio.description }}</p>
         </div>
         <div class="infos" v-if="relatorio && relatorio.user">

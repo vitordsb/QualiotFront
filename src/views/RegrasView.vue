@@ -9,6 +9,11 @@ const categorias = ref([]);
 
 onMounted(() => {
   listarTabs();
+  atualizarTabAtual();
+  if (tabs.value.length > 0) {
+    setActiveTab(0);
+    atualizarTabAtual();
+  }
 });
 
 watch(activeIndex, () => {
@@ -28,8 +33,8 @@ const removerTab = async () => {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `${token}`
-        }
+          Authorization: `${token}`,
+        },
       }
     );
     if (!response.ok) {
@@ -47,6 +52,7 @@ const removerTab = async () => {
 
 const adicionarTab = async () => {
   try {
+    isLoading.value = true;
     const novoTitulo = prompt("Insira o nome da nova categoria:");
     const token = localStorage.getItem("token");
     if (!novoTitulo) return;
@@ -56,12 +62,12 @@ const adicionarTab = async () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `${token}`
+          Authorization: `${token}`,
         },
         body: JSON.stringify({
           name: novoTitulo,
-          _idProduct: localStorage.getItem("produtoParaDarNota")
-        })
+          _idProduct: localStorage.getItem("produtoParaDarNota"),
+        }),
       }
     );
     if (!response.ok) {
@@ -71,12 +77,14 @@ const adicionarTab = async () => {
     tabs.value.push({
       title: data.name,
       _id: data._id,
-      inactive: false
+      inactive: false,
     });
     alert("Nova aba criada, precisa ir para ela!");
     await listarTabs();
     console.log("Nova categoria criada:", data);
+    isLoading.value = false;
   } catch (error) {
+    isLoading.value = false;
     console.error("Erro ao adicionar nova aba:", error);
   }
 };
@@ -92,8 +100,8 @@ const listarTabs = async () => {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `${token}`
-        }
+          Authorization: `${token}`,
+        },
       }
     );
     if (!response.ok) {
@@ -104,14 +112,15 @@ const listarTabs = async () => {
       tabs.value = data.category.map((item) => ({
         title: item.name,
         _id: item._id,
-        inactive: false
+        inactive: false,
       }));
       categorias.value = Array(data.category.length).fill(0);
     } else {
       console.error("Estrutura inesperada: ", data);
       throw new Error("Os dados recebidos não são um array");
     }
-    const abaSelecionada = data.category[activeIndex.value]?._id;
+    // Define a aba selecionada com base no activeIndex
+    const abaSelecionada = tabs.value[activeIndex.value]?._id;
     if (abaSelecionada) {
       localStorage.setItem("abaSelecionada", abaSelecionada);
     }
@@ -124,6 +133,7 @@ const listarTabs = async () => {
 
 const atualizarTabAtual = async () => {
   try {
+    isLoading.value = true;
     const token = localStorage.getItem("token");
     const abaSelecionada = tabs.value[activeIndex.value]?._id;
     if (!abaSelecionada) {
@@ -137,8 +147,8 @@ const atualizarTabAtual = async () => {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `${token}`
-        }
+          Authorization: `${token}`,
+        },
       }
     );
     if (!response.ok) {
@@ -149,6 +159,8 @@ const atualizarTabAtual = async () => {
     localStorage.setItem("perguntas", perguntaId);
   } catch (error) {
     console.error("Erro ao buscar dados da aba ativa:", error);
+  } finally {
+    isLoading.value = false;
   }
 };
 
@@ -161,11 +173,24 @@ const setActiveTab = (index) => {
   <section class="regras-view">
     <div class="abas">
       <div class="tabs-container">
-        <div v-for="(tab, index) in tabs" :key="tab._id || index" class="tab-item">
-          <button @click="setActiveTab(index)" :class="{ active: activeIndex === index, inactive: tab.inactive }" :disabled="tab.inactive" class="tab-button">
+        <div
+          v-for="(tab, index) in tabs"
+          :key="tab._id || index"
+          class="tab-item"
+        >
+          <button
+            @click="setActiveTab(index)"
+            :class="{ active: activeIndex === index, inactive: tab.inactive }"
+            :disabled="tab.inactive"
+            class="tab-button"
+          >
             {{ tab.title }}
           </button>
-          <button v-if="activeIndex === index" @click.stop="removerTab(index)" class="btn-removerTab">
+          <button
+            v-if="activeIndex === index"
+            @click.stop="removerTab(index)"
+            class="btn-removerTab"
+          >
             X
           </button>
         </div>
@@ -194,7 +219,7 @@ const setActiveTab = (index) => {
 .regras-view {
   display: flex;
   padding: 10px;
-  transition: calc(.3s);
+  transition: calc(0.3s);
 }
 .abas {
   display: flex;
@@ -221,9 +246,6 @@ const setActiveTab = (index) => {
   gap: 10px;
   align-items: center;
   justify-content: center;
-  p {
-    font-weight: bold;
-  }
 }
 .tab-button {
   font-weight: bolder;
@@ -246,7 +268,7 @@ const setActiveTab = (index) => {
 .tab-button.active {
   background-color: #007bff;
   color: white;
-  transform: scale(1.10);
+  transform: scale(1.1);
 }
 .tab-button.inactive {
   opacity: 0.6;
@@ -315,7 +337,6 @@ const setActiveTab = (index) => {
     flex-direction: column;
   }
 }
-/* Novos estilos responsivos para telas menores */
 @media (max-width: 480px) {
   .regras-view {
     flex-direction: column;
@@ -352,5 +373,4 @@ const setActiveTab = (index) => {
     font-size: 18px;
   }
 }
-
 </style>

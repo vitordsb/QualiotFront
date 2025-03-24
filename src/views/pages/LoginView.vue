@@ -1,115 +1,122 @@
 <template>
   <Transition name="fade-horizontal">
-  <div class="login-page">
-
-    <div class="image">
-      <img src="/public/assets/logo/qualiot.png" alt="">
-    </div>
-
-    <div class="formLogin">
-      <div class="login-container">
-        <h2>Acesse a sua conta</h2>
-        <form @submit.prevent="handleLogin">
-          <div class="form-group">
-            <label for="email">Email</label>
-            <input
-              type="email"
-              id="email"
-              v-model="email"
-              placeholder="Digite seu email"
-              required
-            />
-          </div>
-          <div class="form-group">
-            <label for="password">Senha</label>
-            <input
-              type="password"
-              id="password"
-              v-model="password"
-              placeholder="Digite sua senha"
-              required
-            />
-          </div>
-          <button type="submit" class="login-button">Entrar</button>
-        </form>
-        <p class="register-link">
-          Não tem uma conta? <RouterLink to="/register">Registre-se aqui</RouterLink>
-        </p>
-        <p :class="['message', messageType]" v-if="message">{{ message }}</p>
-          <div v-if="isLoading" class="spinner"></div>
+    <div class="login-page">
+      <div class="image">
+        <img src="/public/assets/logo/qualiotsemfundo.png" alt="" />
       </div>
+      <div class="formLogin">
+        <div class="login-container">
+          <h2>Acesse a sua conta</h2>
+          <form @submit.prevent="handleLogin">
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input
+                type="email"
+                id="email"
+                v-model="email"
+                placeholder="Digite seu email"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="password">Senha</label>
+              <input
+                type="password"
+                id="password"
+                v-model="password"
+                placeholder="Digite sua senha"
+                required
+              />
+            </div>
+
+            <!-- Área dos botões com overlay -->
+            <div class="action-buttons">
+              <button type="submit" class="login-button" :disabled="isLoading">
+                Entrar
+              </button>
+              <!-- Overlay para bloquear cliques enquanto isLoading -->
+              <div v-if="isLoading" class="overlay"></div>
+            </div>
+          </form>
+          <p class="register-link">
+            Não tem uma conta?
+            <RouterLink to="/register">Registre-se aqui</RouterLink>
+          </p>
+          <p :class="['message', messageType]" v-if="message">{{ message }}</p>
+          <div v-if="isLoading" class="spinner"></div>
         </div>
+      </div>
     </div>
-    </Transition>
+  </Transition>
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
-import { RouterLink } from 'vue-router';
-import { setUser } from '@/components/states/auth';
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+import { RouterLink } from "vue-router";
+import { setUser } from "@/components/states/auth";
 
 const isLoading = ref(false);
 const router = useRouter();
-const email = ref('');
-const password = ref('');
-const message = ref('');
-const messageType = ref('');
+const email = ref("");
+const password = ref("");
+const message = ref("");
+const messageType = ref("");
 
 const handleLogin = async () => {
   try {
     isLoading.value = true;
-    const response = await fetch('https://qualiotbackend.onrender.com/users/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: email.value,
-        password: password.value,
-      }),
-    });
+    const response = await fetch(
+      "https://qualiotbackend.onrender.com/users/login",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email.value,
+          password: password.value,
+        }),
+      }
+    );
     if (!response.ok) {
       isLoading.value = false;
       const errorData = await response.json();
-      message.value = errorData.message || 'Erro ao fazer login. Verifique suas credenciais.';
-      messageType.value = 'error';
+      message.value =
+        errorData.message || "Erro ao fazer login. Verifique suas credenciais.";
+      messageType.value = "error";
       return;
     }
 
     isLoading.value = false;
-    
     const data = await response.json();
     const token = data.userLogin.token;
-    const name = data.userLogin.name 
-    
-    localStorage.setItem('token', token);
-    localStorage.setItem('name', name)
+    const name = data.userLogin.name;
+
+    localStorage.setItem("token", token);
+    localStorage.setItem("name", name);
 
     console.log(data);
-    setUser(name)
-    
-    message.value = 'Login realizado com sucesso!';
-    messageType.value = 'success';
-    setTimeout(() => {
-      router.push('/home');
-      message.value = '';
-    }, 1000);
+    setUser(name);
 
+    message.value = "Login realizado com sucesso!";
+    messageType.value = "success";
+    setTimeout(() => {
+      router.push("/home");
+      message.value = "";
+    }, 1000);
   } catch (error) {
     isLoading.value = false;
-    message.value = 'Erro ao conectar com o servidor.';
-    messageType.value = 'error';
+    message.value = "Erro ao conectar com o servidor.";
+    messageType.value = "error";
     setTimeout(() => {
-      message.value = '';
+      message.value = "";
     }, 2000);
   }
 };
 </script>
 
-
 <style scoped>
-
 .login-page {
   display: flex;
   gap: 10px;
@@ -117,21 +124,23 @@ const handleLogin = async () => {
   align-items: center;
   justify-content: center;
   height: 100vh;
-
-  @media (max-width: 700px){
-      padding: 30px;
-      height: auto;
-      flex-direction: column;
-  }
 }
 
 img {
   width: 750px;
+}
 
-  @media (max-width: 700px){
-      width: 250px;
+@media (max-width: 700px) {
+  .login-page {
+    padding: 30px;
+    height: auto;
+    flex-direction: column;
+  }
+  img {
+    width: 250px;
   }
 }
+
 .formLogin {
   display: flex;
   flex-direction: column;
@@ -140,10 +149,11 @@ img {
   justify-content: center;
   height: 100%;
 }
+
 .image {
-  box-shadow: #4CB7FF 5px 5px 10px;
+  box-shadow: #4cb7ff 5px 5px 10px;
   flex-direction: column;
-  background-color: #4CB7FF;
+  background-color: #4cb7ff;
   display: flex;
   width: 100%;
   height: 100%;
@@ -173,7 +183,7 @@ h2 {
   margin-bottom: 20px;
   color: #333;
   font-size: 36px;
-  font-family: 'Roboto', sans-serif;
+  font-family: "Roboto", sans-serif;
   font-weight: bold;
 }
 
@@ -263,22 +273,20 @@ input[type="password"]:focus {
   .login-container {
     padding: 30px;
   }
-
   h2 {
     font-size: 28px;
   }
-
   input[type="email"],
   input[type="password"] {
     font-size: 16px;
     padding: 10px;
   }
-
   .login-button {
     font-size: 18px;
     padding: 10px;
   }
 }
+
 .spinner {
   margin: 10px auto;
   width: 50px;
@@ -296,5 +304,31 @@ input[type="password"]:focus {
   to {
     transform: rotate(360deg);
   }
+}
+
+/* Estilos para a área dos botões */
+.action-buttons {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+}
+
+/* Overlay que bloqueia os cliques enquanto isLoading */
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.6);
+  z-index: 2;
+}
+
+/* Desabilitar o link com uma classe */
+.forgot-password.disabled {
+  pointer-events: none;
+  opacity: 0.6;
 }
 </style>

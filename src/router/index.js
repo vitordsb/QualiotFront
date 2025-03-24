@@ -47,31 +47,36 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to, from, next) => {
-  if (to.matched.some(record => record.meta.requiresAuth)) {
+  if (to.matched.some((record) => record.meta.requiresAuth)) {
     const token = localStorage.getItem("token");
     if (!token) {
       return next({ name: "login" });
     }
   }
-  if (to.matched.some(record => record.meta.requiresProduct)) {
+  if (to.matched.some((record) => record.meta.requiresProduct)) {
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch('https://qualiotbackend.onrender.com/products', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `${token}`,
-        },
-      });
+      const response = await fetch(
+        "https://qualiotbackend.onrender.com/products",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `${token}`,
+          },
+        }
+      );
       if (!response.ok) {
         throw new Error("Erro ao buscar produtos");
       }
       const data = await response.json();
-      
+
       if (data.product && data.product.length > 0) {
         return next();
       } else {
-        alert("Você precisa ter ao menos um produto cadastrado para acessar esta rota.");
+        alert(
+          "Você precisa ter ao menos um produto cadastrado para acessar esta rota."
+        );
         return next({ name: "produtos" });
       }
     } catch (error) {
@@ -81,7 +86,6 @@ router.beforeEach(async (to, from, next) => {
     }
   }
   next();
-})
-
+});
 
 export default router;

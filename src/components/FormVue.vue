@@ -180,7 +180,7 @@ const buscarPerguntas = async () => {
     const token = localStorage.getItem('token');
     const abaSelecionada = localStorage.getItem('abaSelecionada');
     const response = await fetch(
-      `https://qualiotbackend.onrender.com/questions/get-by-category/${abaSelecionada}?details=false`,
+      `https://qualiotbackend.onrender.com/questions/get-by-category/${abaSelecionada}`,
       {
         method: 'GET',
         headers: {
@@ -189,9 +189,6 @@ const buscarPerguntas = async () => {
         },
       }
     );
-    if (!response.ok) {
-      throw new Error('Erro ao buscar perguntas.');
-    }
     conectarProduto();
     const data = await response.json();
     const perguntaId = data.questionCategory.map((pergunta) => pergunta._id);
@@ -327,17 +324,16 @@ const buscarJustificativa = async () => {
   }
 };
 
-onMounted(async () => {
+onMounted( async () => {
   isLoading.value = true;
   try {
     const notasSalvas = localStorage.getItem(`notas_tab_${props.tabIndex}`);
     if (notasSalvas) {
-      notas.value = JSON.parse(notasSalvas);
       distribuirPesos();
       calcularMediaAba();
     }
     await buscarPerguntas();
-    calcularMediaAba();
+    await calcularMediaAba();
     await buscarJustificativa();
   } catch (error) {
     console.error("Erro ao carregar os dados:", error);

@@ -1,76 +1,76 @@
 <template>
   <Transition name="fade-horizontal">
-  <div class="register-page">
-    <div class="containerRegister">
-      <div class="register-container">
-        <h2>Crie seu registro!</h2>
-        <form @submit.prevent="handleRegister">
-          <div class="form-group">
-            <label for="name">Nome</label>
-            <input
-              type="text"
-              id="name"
-              v-model="name"
-              placeholder="Digite seu nome"
-              required
-            />
-          </div>
-          <div class="form-group">
-            <label for="email">Email</label>
-            <input
-              type="email"
-              id="email"
-              v-model="email"
-              placeholder="Digite seu email"
-              required
-            />
-          </div>
-          <div class="form-group">
-            <label for="password">Senha</label>
-            <input
-              type="password"
-              id="password"
-              v-model="password"
-              placeholder="Digite sua senha"
-              required
-            />
-          </div>
-          <button type="submit" class="register-button">Registrar</button>
-        </form>
-        <p class="login-link">
-          Já tem uma conta? <RouterLink to="/">Faça login aqui</RouterLink>
-        </p>
-        <p :class="['message', messageType]" v-if="message">{{ message }}</p>
-        <div v-if="isLoading" class="spinner"></div>
+    <div class="register-page">
+      <div class="containerRegister">
+        <div class="register-container">
+          <h2>Crie seu registro!</h2>
+          <form @submit.prevent="handleRegister">
+            <div class="form-group">
+              <label for="name">Nome</label>
+              <input
+                type="text"
+                id="name"
+                v-model="name"
+                placeholder="Digite seu nome"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input
+                type="email"
+                id="email"
+                v-model="email"
+                placeholder="Digite seu email"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="password">Senha</label>
+              <input
+                type="password"
+                id="password"
+                v-model="password"
+                placeholder="Digite sua senha"
+                required
+              />
+            </div>
+            <button type="submit" class="register-button">Registrar</button>
+          </form>
+          <p class="login-link">
+            Já tem uma conta? <RouterLink to="/">Faça login aqui</RouterLink>
+          </p>
+          <p :class="['message', messageType]" v-if="message">{{ message }}</p>
+          <div v-if="isLoading" class="spinner"></div>
+        </div>
+      </div>
+      <div class="imageRegister">
+        <img src="/public/assets/logo/qualiotsemfundo.png" alt="" />
       </div>
     </div>
-    <div class="imageRegister">
-      <img src="/public/assets/logo/qualiot.png" alt="">
-    </div>
-  </div>
-</Transition>
+  </Transition>
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
-import { RouterLink } from 'vue-router';
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+import { RouterLink } from "vue-router";
 
 const isLoading = ref(false);
 const router = useRouter();
-const name = ref('');
-const email = ref('');
-const password = ref('');
-const message = ref('');
-const messageType = ref('');
+const name = ref("");
+const email = ref("");
+const password = ref("");
+const message = ref("");
+const messageType = ref("");
 
 const handleRegister = async () => {
   try {
     isLoading.value = true;
-    const response = await fetch('https://qualiotbackend.onrender.com/users', {
-      method: 'POST',
+    const response = await fetch("https://qualiotbackend.onrender.com/users", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         name: name.value,
@@ -80,34 +80,34 @@ const handleRegister = async () => {
     });
     isLoading.value = false;
     const data = await response.json();
-    console.log(data)
+    console.log(data);
 
     if (!response.ok) {
       isLoading.value = false;
       const errorData = await response.json();
-      message.value = errorData.message || 'Erro ao registrar. Verifique suas credenciais.';
-      messageType.value = 'error';
+      message.value =
+        errorData.message || "Erro ao registrar. Verifique suas credenciais.";
+      messageType.value = "error";
       return;
     }
-    message.value = 'Cadastro realizado com sucesso! Redirecionando para o login...';
-    messageType.value = 'success';
+    message.value =
+      "Cadastro realizado com sucesso! Redirecionando para o login...";
+    messageType.value = "success";
 
     setTimeout(() => {
-      message.value = '';
-      router.push('/');
+      message.value = "";
+      router.push("/");
     }, 2000);
-    
   } catch (error) {
     isLoading.value = false;
-    console.error('Erro ao registrar:', error);
-    message.value = 'Erro ao registrar. Verifique suas credenciais.';
-    messageType.value = 'error';
+    console.error("Erro ao registrar:", error);
+    message.value = "Erro ao registrar. Verifique suas credenciais.";
+    messageType.value = "error";
     setTimeout(() => {
-      message.value = ''
+      message.value = "";
     }, 3000);
   }
 };
-
 </script>
 
 <style scoped>
@@ -116,10 +116,10 @@ const handleRegister = async () => {
   align-items: center;
   justify-content: center;
   height: 100vh;
-  @media (max-width: 700px){
-      padding: 30px;
-      height: auto;
-      flex-direction: column-reverse;
+  @media (max-width: 700px) {
+    padding: 30px;
+    height: auto;
+    flex-direction: column-reverse;
   }
 }
 
@@ -133,7 +133,7 @@ const handleRegister = async () => {
 
 .imageRegister {
   box-shadow: #00c6ff 0px 5px 10px 5px;
-  background-color: #4CB7FF;
+  background-color: #4cb7ff;
   width: 100%;
   display: flex;
   align-items: center;
@@ -167,7 +167,7 @@ h2 {
   margin-bottom: 20px;
   color: #333;
   font-size: 36px;
-  font-family: 'Roboto', sans-serif;
+  font-family: "Roboto", sans-serif;
   font-weight: bold;
 }
 

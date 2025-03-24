@@ -1,10 +1,16 @@
 <template>
   <div class="produto-cadastro">
     <div class="abas">
-      <button :class="{ active: abaAtiva === 'cadastrar' }" @click="abaAtiva = 'cadastrar'">
+      <button
+        :class="{ active: abaAtiva === 'cadastrar' }"
+        @click="abaAtiva = 'cadastrar'"
+      >
         Cadastrar Produto
       </button>
-      <button :class="{ active: abaAtiva === 'listar' }" @click="listarProdutos">
+      <button
+        :class="{ active: abaAtiva === 'listar' }"
+        @click="listarProdutos"
+      >
         Listar Produtos
       </button>
     </div>
@@ -24,9 +30,15 @@
               </div>
               <div class="form-group">
                 <label for="descricao">Descrição:</label>
-                <textarea id="descricao" v-model="produto.descricao" required></textarea>
+                <textarea
+                  id="descricao"
+                  v-model="produto.descricao"
+                  required
+                ></textarea>
               </div>
-              <button type="submit" class="btn-cadastrar">Cadastrar Produto</button>
+              <button type="submit" class="btn-cadastrar">
+                Cadastrar Produto
+              </button>
             </form>
           </div>
         </div>
@@ -39,13 +51,21 @@
             <p>Carregando produtos, por favor aguarde...</p>
           </div>
           <div v-else-if="produtos.length" class="produtos-list">
-            <div v-for="(prod, index) in produtos" :key="prod._id" class="produto-card">
+            <div
+              v-for="(prod, index) in produtos"
+              :key="prod._id"
+              class="produto-card"
+            >
               <div class="produto-detalhes">
                 <h2>{{ capitalizeFirstLetter(prod.name) }}</h2>
                 <p>{{ prod.description }}</p>
                 <div class="botoes">
-                  <button @click="confirmarRemocao(index)" class="btn-remover">Remover</button>
-                  <button @click="editarProduto(index)" class="btn-editar">Editar</button>
+                  <button @click="confirmarRemocao(index)" class="btn-remover">
+                    Remover
+                  </button>
+                  <button @click="editarProduto(index)" class="btn-editar">
+                    Editar
+                  </button>
                 </div>
               </div>
             </div>
@@ -60,17 +80,16 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
-import { useRouter } from 'vue-router';
-const abaAtiva = ref('cadastrar');
-const produto = ref({ nome: '', descricao: '' });
+import { ref, onMounted, watch } from "vue";
+import { useRouter } from "vue-router";
+const abaAtiva = ref("cadastrar");
+const produto = ref({ nome: "", descricao: "" });
 const produtos = ref([]);
 const isLoading = ref(false);
-const backendURL = 'https://qualiotbackend.onrender.com/products';
+const backendURL = "https://qualiotbackend.onrender.com/products";
 
 const router = useRouter();
 const isReloading = ref(false);
-
 
 onMounted(async () => {
   await listarProdutos();
@@ -79,23 +98,23 @@ onMounted(async () => {
       isReloading.value = true;
       router.go(0);
     }
-  })
-  if (!localStorage.getItem('reloadDone')) {
-    localStorage.setItem('reloadDone', 'true');
+  });
+  if (!localStorage.getItem("reloadDone")) {
+    localStorage.setItem("reloadDone", "true");
     router.go(0);
   }
 });
 
 const listarProdutos = async () => {
-  abaAtiva.value = 'listar';
   try {
-    isLoading.value = true; 
-    const token = localStorage.getItem('token');
+    abaAtiva.value = 'listar'
+    isLoading.value = true;
+    const token = localStorage.getItem("token");
     const response = await fetch(backendURL, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `${token}`,
+        "Content-Type": "application/json",
+        Authorization: `${token}`,
       },
     });
     const data = await response.json();
@@ -104,9 +123,9 @@ const listarProdutos = async () => {
       localStorage.setItem("produtoParaDarNota", produtos.value[0]._id);
       console.log(produtos.value[0]._id);
     }
-    console.log('Produtos recebidos:', data.product);
+    console.log("Produtos recebidos:", data.product);
   } catch (error) {
-    console.error('Erro ao buscar produtos:', error);
+    console.error("Erro ao buscar produtos:", error);
   } finally {
     isLoading.value = false;
   }
@@ -115,63 +134,63 @@ const cadastrarProduto = async () => {
   if (produto.value.nome && produto.value.descricao) {
     try {
       isLoading.value = true;
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       const novoProduto = {
         name: produto.value.nome,
         description: produto.value.descricao,
       };
       const response = await fetch(backendURL, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `${token}`,
+          "Content-Type": "application/json",
+          Authorization: `${token}`,
         },
         body: JSON.stringify(novoProduto),
       });
       if (!response.ok) {
-        throw new Error('Erro ao cadastrar produto');
+        throw new Error("Erro ao cadastrar produto");
       }
       const data = await response.json();
       produtos.value.push(data);
-      alert('Produto cadastrado com sucesso!');
+      alert("Produto cadastrado com sucesso!");
       if (produtos.value.length === 1) {
         localStorage.setItem("produtoParaDarNota", data._id);
       }
       localStorage.setItem("produto", JSON.stringify(produtos.value));
-      produto.value = { nome: '', descricao: '' };
+      produto.value = { nome: "", descricao: "" };
       window.location.reload();
     } catch (error) {
-      console.error('Erro ao cadastrar produto:', error);
-      alert('Erro ao cadastrar o produto. Tente novamente.');
+      console.error("Erro ao cadastrar produto:", error);
+      alert("Erro ao cadastrar o produto. Tente novamente.");
     }
   } else {
-    alert('Por favor, preencha todos os campos obrigatórios.');
+    alert("Por favor, preencha todos os campos obrigatórios.");
   }
 };
 const removerProduto = async (index) => {
   const produtoRemovido = produtos.value[index];
   if (!produtoRemovido) return;
   try {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     const response = await fetch(`${backendURL}/${produtoRemovido._id}`, {
-      method: 'DELETE',
+      method: "DELETE",
       headers: {
-        'Authorization': `${token}`,
+        Authorization: `${token}`,
       },
     });
     if (!response.ok) {
-      throw new Error('Erro ao remover produto');
+      throw new Error("Erro ao remover produto");
     }
     produtos.value.splice(index, 1);
-    alert('Produto removido com sucesso!');
+    alert("Produto removido com sucesso!");
     window.location.reload();
   } catch (error) {
-    console.error('Erro ao remover o produto:', error);
-    alert('Erro ao remover o produto. Tente novamente.');
+    console.error("Erro ao remover o produto:", error);
+    alert("Erro ao remover o produto. Tente novamente.");
   }
 };
 const confirmarRemocao = (index) => {
-  if (confirm('Tem certeza que deseja remover este produto?')) {
+  if (confirm("Tem certeza que deseja remover este produto?")) {
     removerProduto(index);
   }
 };
@@ -181,28 +200,31 @@ const capitalizeFirstLetter = (string) => {
 const editarProduto = async (index) => {
   const prod = produtos.value[index];
   if (!prod) {
-    alert('Produto não encontrado.');
+    alert("Produto não encontrado.");
     return;
   }
-  const newProductName = prompt('Digite o novo nome do produto', prod.name);
-  const newProductDescription = prompt('Digite a nova descrição do produto', prod.description);
+  const newProductName = prompt("Digite o novo nome do produto", prod.name);
+  const newProductDescription = prompt(
+    "Digite a nova descrição do produto",
+    prod.description
+  );
   if (newProductName === null || newProductDescription === null) {
-    alert('Edição cancelada.');
+    alert("Edição cancelada.");
     return;
   }
   const trimmedName = newProductName.trim();
   const trimmedDescription = newProductDescription.trim();
   if (!trimmedName || !trimmedDescription) {
-    alert('Os campos não podem estar vazios.');
+    alert("Os campos não podem estar vazios.");
     return;
   }
   try {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     const response = await fetch(`${backendURL}/${prod._id}`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `${token}`,
+        "Content-Type": "application/json",
+        Authorization: `${token}`,
       },
       body: JSON.stringify({
         name: trimmedName,
@@ -211,27 +233,25 @@ const editarProduto = async (index) => {
     });
     const data = await response.json();
     if (!response.ok) {
-      throw new Error(data.message || 'Erro ao editar o produto');
+      throw new Error(data.message || "Erro ao editar o produto");
     }
     window.location.reload();
     produtos.value[index] = data;
-    alert('Produto editado com sucesso!');
+    alert("Produto editado com sucesso!");
   } catch (error) {
-    console.error('Erro ao editar o produto:', error);
-    alert('Erro ao editar o produto. Tente novamente.');
+    console.error("Erro ao editar o produto:", error);
+    alert("Erro ao editar o produto. Tente novamente.");
   }
 };
 </script>
 
 <style scoped>
-
 .produto-cadastro {
   display: flex;
   flex-direction: column;
   border-radius: 10px;
   max-width: 800px;
   margin: 100px auto;
-
 }
 .abas {
   display: flex;
@@ -270,7 +290,7 @@ const editarProduto = async (index) => {
 }
 .form-container,
 .list-container {
-  background-color: #F0F2F5;
+  background-color: #f0f2f5;
   text-align: center;
   position: relative;
   border-radius: 10px;
