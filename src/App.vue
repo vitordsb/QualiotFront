@@ -31,6 +31,7 @@ import { RouterView } from 'vue-router';
 }
 body {
   overflow-x: hidden;
+  overflow-y: scroll;
 }
 
 .slide-fade-enter-from {

@@ -10,6 +10,7 @@ import { RouterView } from 'vue-router';
 
 <style scoped>
 
+
 .slide-fade-enter-from {
   opacity: 0;
   transform: translateX(30px);

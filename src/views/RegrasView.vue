@@ -6,18 +6,34 @@ const tabs = ref([]);
 const isLoading = ref(true);
 const activeIndex = ref(0);
 const categorias = ref([]);
+const props = defineProps({
+  totalTabs: {
+    type: Number,
+    default: 1,
+  },
+});
 
-onMounted(() => {
-  listarTabs();
-  atualizarTabAtual();
+onMounted(async () => {
+  await listarTabs();
   if (tabs.value.length > 0) {
-    setActiveTab(0);
-    atualizarTabAtual();
+    if (!localStorage.getItem("abaSelecionada")) {
+      setActiveTab(0);
+      localStorage.setItem("abaSelecionada", tabs.value[0]._id);
+    } else {
+      const abaSelecionada = localStorage.getItem("abaSelecionada");
+      const tabIndex = tabs.value.findIndex((tab) => tab._id === abaSelecionada);
+      if (tabIndex !== -1) {
+        setActiveTab(tabIndex);
+      }
+    }
   }
 });
 
 watch(activeIndex, () => {
-  atualizarTabAtual();
+  const abaSelecionada = tabs.value[activeIndex.value]?._id;
+  if (abaSelecionada) {
+    localStorage.setItem("abaSelecionada", abaSelecionada);
+  }
 });
 
 const removerTab = async () => {
@@ -80,7 +96,7 @@ const adicionarTab = async () => {
       inactive: false,
     });
     alert("Nova aba criada, precisa ir para ela!");
-    await listarTabs();
+    listarTabs();
     console.log("Nova categoria criada:", data);
     isLoading.value = false;
   } catch (error) {
@@ -114,15 +130,31 @@ const listarTabs = async () => {
         _id: item._id,
         inactive: false,
       }));
-      categorias.value = Array(data.category.length).fill(0);
+
+      // Verifique se já existe uma aba selecionada no localStorage
+      let abaSelecionada = localStorage.getItem("abaSelecionada");
+      categorias.value = data.category;
+      // Se não existir abaSelecionada, defina a primeira aba
+      if (!abaSelecionada && tabs.value.length > 0) {
+        abaSelecionada = tabs.value[0]._id;  // A primeira aba
+        localStorage.setItem("abaSelecionada", abaSelecionada);  // Salve no localStorage
+      }
+      
+      // Se já houver uma aba selecionada, garanta que seja válida
+      const abaValida = tabs.value.find((tab) => tab._id === abaSelecionada);
+      if (abaValida) {
+        localStorage.setItem("abaSelecionada", abaValida._id);
+      } else {
+        abaSelecionada = tabs.value[0]._id;  // Se a aba não for válida, use a primeira
+        localStorage.setItem("abaSelecionada", abaSelecionada);
+      }
+
+      // Agora defina o índice ativo com base na aba selecionada
+      activeIndex.value = tabs.value.findIndex((tab) => tab._id === abaSelecionada);
+
     } else {
       console.error("Estrutura inesperada: ", data);
       throw new Error("Os dados recebidos não são um array");
-    }
-    // Define a aba selecionada com base no activeIndex
-    const abaSelecionada = tabs.value[activeIndex.value]?._id;
-    if (abaSelecionada) {
-      localStorage.setItem("abaSelecionada", abaSelecionada);
     }
   } catch (error) {
     console.error(error);
@@ -131,43 +163,21 @@ const listarTabs = async () => {
   }
 };
 
-const atualizarTabAtual = async () => {
-  try {
-    isLoading.value = true;
-    const token = localStorage.getItem("token");
-    const abaSelecionada = tabs.value[activeIndex.value]?._id;
-    if (!abaSelecionada) {
-      throw new Error("Aba selecionada não encontrada");
-    }
-    localStorage.setItem("abaSelecionada", abaSelecionada);
-    console.log("Aba ativa:", abaSelecionada);
-    const response = await fetch(
-      `https://qualiotbackend.onrender.com/questions/get-by-category/${abaSelecionada}?details=false`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `${token}`,
-        },
-      }
-    );
-    if (!response.ok) {
-      throw new Error("Erro ao buscar perguntas");
-    }
-    const data = await response.json();
-    const perguntaId = data.questionCategory.map((pergunta) => pergunta._id);
-    localStorage.setItem("perguntas", perguntaId);
-  } catch (error) {
-    console.error("Erro ao buscar dados da aba ativa:", error);
-  } finally {
-    isLoading.value = false;
-  }
-};
+onMounted(() => {
+  listarTabs();  // Carregar as tabs quando o componente for montado
+});
+
 
 const setActiveTab = (index) => {
   activeIndex.value = index;
+  const abaSelecionada = tabs.value[activeIndex.value]?._id;
+  if (abaSelecionada) {
+    localStorage.setItem("abaSelecionada", abaSelecionada);
+  }
 };
+
 </script>
+5
 
 <template>
   <section class="regras-view">

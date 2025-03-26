@@ -13,7 +13,7 @@ const props = defineProps({
 const justificativa = ref([]);
 const descricao = ref([]);
 const perguntas = ref([]);
-const isLoading = ref(true);
+const isLoading = ref(false);
 const notas = ref([]);
 const pesos = ref([]);
 const media = ref(0);
@@ -30,44 +30,15 @@ watch(isLoading, (newValue) => {
 watch(
   notas,
   (newNotas) => {
-    localStorage.setItem(`notas_tab_${props.tabIndex}`, JSON.stringify(newNotas));
+    // Salva as notas no localStorage ao mudar
+    newNotas.forEach((nota, i) => {
+      localStorage.setItem(`nota_${props.tabIndex}_${i}`, JSON.stringify(nota));
+    });
   },
   { deep: true }
 );
-const enviarJustificativas = async () => {
-  try {
-    isLoading.value = true;
-    const token = localStorage.getItem('token');
-    const storedPerguntasId = localStorage.getItem(`perguntasId_tab_${props.tabIndex}`);
-    if (!storedPerguntasId) {
-      alert('Nenhuma pergunta encontrada para enviar justificativas.');
-      return;
-    }
-    const perguntasIdArray = JSON.parse(storedPerguntasId);
-    for (let i = 0; i < justificativa.value.length; i++) {
-      if (justificativa.value[i] && justificativa.value[i].trim() !== "") {
-        const response = await fetch('https://qualiotbackend.onrender.com/justifications', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `${token}`,
-          },
-          body: JSON.stringify({
-            justification: justificativa.value[i],
-            _idQuestionCategory: perguntasIdArray[i],
-          }),
-        });
-        const data = await response.json();
-        console.log(data);
-      }
-    }
-    isLoading.value = false;
-    buscarJustificativa();
-  } catch (error) {
-    isLoading.value = false;
-    console.error('Erro ao enviar justificativas:', error);
-  }
-};
+
+
 const distribuirPesos = () => {
   const numPerguntas = perguntas.value.length;
   switch (numPerguntas) {
@@ -120,14 +91,11 @@ const adicionarPergunta = async () => {
       throw new Error('Erro ao cadastrar pergunta.');
     }
     const data = await response.json();
-    alert('Pergunta cadastrada com sucesso!');
-    console.log('Pergunta cadastrada com sucesso:', data);
+    console.log("Pergunta cadastrada", data)
     buscarPerguntas();
-    buscarJustificativa();
   } catch (error) {
     console.error('Erro ao cadastrar pergunta:', error);
     alert('Erro ao cadastrar pergunta. Tente novamente.');
-  } finally {
     isLoading.value = false;
   }
 };
@@ -152,6 +120,7 @@ const removerPergunta = async (index) => {
     if (!response.ok) {
       throw new Error('Erro ao remover pergunta.');
     }
+    const data = await response.json();
     perguntas.value.splice(index, 1);
     descricao.value.splice(index, 1);
     notas.value.splice(index, 1);
@@ -163,9 +132,8 @@ const removerPergunta = async (index) => {
     localStorage.setItem(`descricao_tab_${props.tabIndex}`, JSON.stringify(descricao.value));
     localStorage.setItem(`notas_tab_${props.tabIndex}`, JSON.stringify(notas.value));
     localStorage.setItem(`pesos_tab_${props.tabIndex}`, JSON.stringify(pesos.value));
-    alert('Pergunta removida com sucesso!');
-    console.log('Pergunta removida com sucesso:', await response.json());
-    computeFinalGrade();
+    console.log('Pergunta removida', data);
+    buscarPerguntas();
   } catch (error) {
     console.error('Erro ao remover pergunta:', error);
     alert('Erro ao remover pergunta. Tente novamente.');
@@ -173,12 +141,17 @@ const removerPergunta = async (index) => {
     isLoading.value = false;
   }
 };
-
 const buscarPerguntas = async () => {
   try {
     isLoading.value = true;
     const token = localStorage.getItem('token');
     const abaSelecionada = localStorage.getItem('abaSelecionada');
+    
+    if (!abaSelecionada) {
+      console.error("A aba selecionada não foi encontrada.");
+      return;
+    }
+
     const response = await fetch(
       `https://qualiotbackend.onrender.com/questions/get-by-category/${abaSelecionada}`,
       {
@@ -189,19 +162,38 @@ const buscarPerguntas = async () => {
         },
       }
     );
-    conectarProduto();
+
     const data = await response.json();
-    const perguntaId = data.questionCategory.map((pergunta) => pergunta._id);
-    notas.value = data.questionCategory.map((pergunta) => pergunta.grade);
-    perguntas.value = data.questionCategory.map((pergunta) => pergunta.title);
-    descricao.value = data.questionCategory.map((pergunta) => pergunta.announced);
-    justificativa.value = Array(data.questionCategory.length).fill('');
-    distribuirPesos();
-    localStorage.setItem(`perguntas_tab_${props.tabIndex}`, JSON.stringify(perguntas.value));
-    localStorage.setItem(`descricao_tab_${props.tabIndex}`, JSON.stringify(descricao.value));
-    localStorage.setItem(`perguntasId_tab_${props.tabIndex}`, JSON.stringify(perguntaId));
-    localStorage.setItem(`notas_tab_${props.tabIndex}`, JSON.stringify(notas.value));
-    localStorage.setItem(`pesos_tab_${props.tabIndex}`, JSON.stringify(pesos.value));
+    console.log(data)
+    if (data && Array.isArray(data.questionCategory)) {
+      perguntas.value = [];
+      descricao.value = [];
+      notas.value = [];
+      justificativa.value = [];
+
+      // Preenche as variáveis com as novas perguntas, notas e justificativas
+      for (let i = 0; i < data.questionCategory.length; i++) {
+        perguntas.value.push(data.questionCategory[i].title);
+        descricao.value.push(data.questionCategory[i].announced);
+        
+        // Recupera as notas e justificativas do localStorage
+        const savedNota = localStorage.getItem(`nota_${props.tabIndex}_${i}`);
+        notas.value.push(savedNota ? JSON.parse(savedNota) : (data.questionCategory[i].grade || 0));
+
+        const savedJustificativa = localStorage.getItem(`justification_tab_${props.tabIndex}_${i}`);
+        justificativa.value.push(savedJustificativa || "");  // Se não tiver justificativa, inicializa com vazio
+      }
+
+      distribuirPesos();
+      localStorage.setItem(`perguntas_tab_${props.tabIndex}`, JSON.stringify(perguntas.value));
+      localStorage.setItem(`descricao_tab_${props.tabIndex}`, JSON.stringify(descricao.value));
+      localStorage.setItem(`notas_tab_${props.tabIndex}`, JSON.stringify(notas.value));
+      localStorage.setItem(`pesos_tab_${props.tabIndex}`, JSON.stringify(pesos.value));
+      localStorage.setItem(`perguntasId_tab_${props.tabIndex}`, JSON.stringify(data.questionCategory.map((item) => item._id)));
+    } else {
+      console.error('Estrutura inesperada: questionCategory não é um array');
+    }
+
   } catch (error) {
     console.error('Erro ao buscar perguntas:', error);
   } finally {
@@ -209,63 +201,63 @@ const buscarPerguntas = async () => {
   }
 };
 
+
 const updateQuestionGrades = async () => {
   isLoading.value = true;
+
   const storedPerguntasId = localStorage.getItem(`perguntasId_tab_${props.tabIndex}`);
-  if (!storedPerguntasId) return;
+  if (!storedPerguntasId) {
+    isLoading.value = false;
+    return;
+  }
+
   const perguntasIdArray = JSON.parse(storedPerguntasId);
   const token = localStorage.getItem('token');
-  let storedNotas = JSON.parse(localStorage.getItem(`notas_tab_${props.tabIndex}`)) || [];
   
-  const updatePromises = perguntasIdArray.map((id, i) => {
+  // Obtém as notas armazenadas
+  let storedNotas = JSON.parse(localStorage.getItem(`notas_tab_${props.tabIndex}`)) || [];
+
+  // Preparamos a lista de promessas para atualizar as notas no backend
+  const updatePromises = perguntasIdArray.map(async (id, i) => {
     let gradeValue = parseFloat(notas.value[i]);
+
     if (isNaN(gradeValue)) {
-      gradeValue = storedNotas[i] !== undefined ? storedNotas[i] : 0;
+      gradeValue = storedNotas[i] !== undefined ? storedNotas[i] : 0;  // Fallback caso a nota não seja válida
     }
-    return fetch(`https://qualiotbackend.onrender.com/questions/${id}`, {
-      method: 'PATCH',
+
+    // Usando PATCH para atualizar a nota no backend, sem afetar os outros campos
+    const response = await fetch(`https://qualiotbackend.onrender.com/questions/${id}`, {
+      method: 'PATCH',  // Usando PATCH para atualizar a nota
       headers: {
         'Content-Type': 'application/json',
         Authorization: `${token}`,
       },
-      body: JSON.stringify({ grade: gradeValue }),
-    }).then(response => {
-      isLoading.value = false
-      if (!response.ok) {
-        isLoading.value = false;
-        return response.json().then(errorData => {
-          console.error(`Erro ao atualizar grade para a pergunta ${id}`, errorData);
-        });
-      }
+      body: JSON.stringify({
+        grade: gradeValue,  // Atualiza apenas a nota
+      }),
     });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error(`Erro ao atualizar grade para a pergunta ${id}`, data);
+    } else {
+      console.log(`Nota atualizada com sucesso para a pergunta ${id}`);
+    }
   });
-  
+
+  // Aguarda que todas as promessas sejam resolvidas
   await Promise.all(updatePromises);
+
+  // Agora que as notas foram atualizadas no backend, busque as perguntas novamente
+  await buscarPerguntas();  // Isso garante que a interface será atualizada com os dados mais recentes
+
+  // Também vamos atualizar o localStorage com as novas notas
+  localStorage.setItem(`notas_tab_${props.tabIndex}`, JSON.stringify(notas.value));
+  isLoading.value = false;
 };
 
-const conectarProduto = async () => {
-  try {
-    const token = localStorage.getItem('token');
-    const response = await fetch('https://qualiotbackend.onrender.com/products', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `${token}`,
-      },
-    });
-    const data = await response.json();
-    console.log(data);
-    const proeficiency = data.product[0].proficiency;
-    const notaFinal = data.product[0].finalGrade;
-    localStorage.setItem('proeficiency', proeficiency);
-    localStorage.setItem('finalGrade', notaFinal);
-  } catch (error) {
-    console.error('Erro ao conectar ao produto:', error);
-    if (error.message === 'Failed to fetch') {
-      alert('Erro ao conectar ao produto. Tente novamente.');
-    } 
-  }
-};
+
 
 const calcularMediaAba = async () => {
   isLoading.value = true;
@@ -290,42 +282,136 @@ const calcularMediaAba = async () => {
   updateQuestionGrades();
 };
 
+
+// Chama o método buscarJustificativa quando o componente é montado
+
 const buscarJustificativa = async () => {
   try {
     const storedPerguntasId = localStorage.getItem(`perguntasId_tab_${props.tabIndex}`);
     if (!storedPerguntasId) return;
+
     const perguntasIdArray = JSON.parse(storedPerguntasId);
     const token = localStorage.getItem('token');
     let justificationsArray = [];
+
     for (let i = 0; i < perguntasIdArray.length; i++) {
       const id = perguntasIdArray[i];
-      const response = await fetch(
-        `https://qualiotbackend.onrender.com/justifications/get-by-question/${id}`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `${token}`,
-          },
-        }
-      );
-      const data = await response.json();
-      if (data.justificationQuestions && Array.isArray(data.justificationQuestions) && data.justificationQuestions.length > 0) {
-        justificationsArray[i] = data.justificationQuestions[0].justification || "";
-        localStorage.setItem(`justification_tab_${props.tabIndex}_${i}`, data.justificationQuestions[0]._id);
+
+      // Verifica se já existe uma justificativa no localStorage
+      const storedJustification = localStorage.getItem(`justification_tab_${props.tabIndex}_${i}`);
+
+      if (storedJustification) {
+        justificationsArray[i] = storedJustification;
       } else {
-        justificationsArray[i] = "";
+        // Se não encontrar no localStorage, busca a justificativa no servidor
+        const response = await fetch(
+          `https://qualiotbackend.onrender.com/justifications/get-by-question/${id}`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const data = await response.json();
+        if (data.justificationQuestions && data.justificationQuestions.length > 0) {
+          justificationsArray[i] = data.justificationQuestions[0].justification || "";
+          // Armazena a justificativa no localStorage
+          localStorage.setItem(`justification_tab_${props.tabIndex}_${i}`, data.justificationQuestions[0].justification);
+        } else {
+          justificationsArray[i] = "";
+        }
       }
     }
+
     justificativa.value = justificationsArray;
-    console.log('Justificativas carregadas:', justificativa.value);
   } catch (error) {
     console.error('Erro ao buscar justificativa:', error);
   }
 };
+const enviarJustificativas = async () => {
+  try {
+    isLoading.value = true;
+    const token = localStorage.getItem('token');
+    const storedPerguntasId = localStorage.getItem(`perguntasId_tab_${props.tabIndex}`);
+    if (!storedPerguntasId) {
+      alert('Nenhuma pergunta encontrada para enviar justificativas.');
+      return;
+    }
+    const perguntasIdArray = JSON.parse(storedPerguntasId);
+    
+    for (let i = 0; i < justificativa.value.length; i++) {
+      const justification = justificativa.value[i]?.trim();
+      
+      if (justification) {
+        const storedJustificationId = localStorage.getItem(`justification_id_tab_${props.tabIndex}_${i}`);
 
-onMounted( async () => {
+        // Se já existir uma justificativa, faz um PUT para atualizar
+        if (storedJustificationId) {
+          const responsePut = await fetch(`https://qualiotbackend.onrender.com/justifications/${storedJustificationId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              justification,
+              _idQuestionCategory: perguntasIdArray[i],
+            }),
+          });
+
+          const data = await responsePut.json();
+
+          if (responsePut.ok) {
+            console.log('Justificativa atualizada com sucesso!');
+            // Atualiza o localStorage com a nova justificativa
+            localStorage.setItem(`justification_tab_${props.tabIndex}_${i}`, justification);
+          } else {
+            console.error('Erro ao atualizar justificativa:', data);
+          }
+
+        } else {
+          // Caso não tenha uma justificativa salva, cria uma nova
+          const responsePost = await fetch('https://qualiotbackend.onrender.com/justifications', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              justification,
+              _idQuestionCategory: perguntasIdArray[i],
+            }),
+          });
+
+          const data = await responsePost.json();
+
+          if (responsePost.ok) {
+            console.log('Justificativa criada com sucesso!');
+            // Salva a nova justificativa no localStorage
+            localStorage.setItem(`justification_id_tab_${props.tabIndex}_${i}`, data._id);
+            localStorage.setItem(`justification_tab_${props.tabIndex}_${i}`, justification);
+          } else {
+            console.error('Erro ao criar justificativa:', data);
+          }
+        }
+      }
+    }
+    
+    isLoading.value = false;
+    await buscarJustificativa(); // Recarrega as justificativas após envio
+  } catch (error) {
+    isLoading.value = false;
+    console.error('Erro ao enviar justificativas:', error);
+  }
+};
+
+
+onMounted(async() => {
   isLoading.value = true;
+  setTimeout( async () => {
   try {
     const notasSalvas = localStorage.getItem(`notas_tab_${props.tabIndex}`);
     if (notasSalvas) {
@@ -333,13 +419,15 @@ onMounted( async () => {
       calcularMediaAba();
     }
     await buscarPerguntas();
+    await buscarJustificativa()
     await calcularMediaAba();
-    await buscarJustificativa();
   } catch (error) {
     console.error("Erro ao carregar os dados:", error);
   } finally {
     isLoading.value = false;
   }
+  isLoading.value = false;
+  }, 1000);
 });
 </script>
 
@@ -368,17 +456,17 @@ onMounted( async () => {
             </div>
             <div class="justificativa-group">
               <span>Justificativa:</span>
-              <textarea
-                v-model="justificativa[index]"
-                :name="'justificativa' + index"
-                :id="'justificativa' + index"
-                cols="30"
-                rows="3"
-              ></textarea>
+                <textarea
+                  v-model="justificativa[index]"
+                  :name="'justificativa' + index"
+                  :id="'justificativa' + index"
+                  cols="30"
+                  rows="3"
+                ></textarea>
+              <button @click.prevent="removerPergunta(index)" class="btn btn-remover">
+                <img src="/public/assets/icons/iconTrash.png" alt="">
+              </button>
             </div>
-            <button @click.prevent="removerPergunta(index)" class="btn btn-remover">
-              Excluir
-            </button>
           </div>
         </form>
       </div>
@@ -391,7 +479,7 @@ onMounted( async () => {
             Calcular média
           </button>
           <button @click="enviarJustificativas" class="btn btn-primary">
-            Enviar/Atualizar justificativas
+            Enviar/Alterar justificativa
           </button>
         </div>
         <div class="calculos">
@@ -409,7 +497,24 @@ onMounted( async () => {
   </div>
 </template>
 
+
 <style scoped>
+.groupjustify {
+  display: flex;
+  flex-direction: column;
+  .btn-justify {
+    margin-top: 10px;
+    width: 50%;
+    justify-self: center;
+    border: none;
+    background-color: #c82333;
+    padding: 5px;
+    color: white;
+    border-radius: 10px;
+    font-weight: bolder;
+    align-self: center;
+  }
+}
 .form {
   display: flex;
   height: auto;
@@ -536,6 +641,12 @@ onMounted( async () => {
 .btn-remover {
   background-color: #dc3545;
   color: #fff;
+  display: flex;
+  align-items: center;
+  img {
+    width: 20px;
+    filter: invert(1);
+  }
 }
 .btn-remover:hover {
   background-color: #c82333;
@@ -654,5 +765,4 @@ onMounted( async () => {
     gap: 20px;
   }
 }
-
 </style>

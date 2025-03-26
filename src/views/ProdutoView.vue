@@ -91,17 +91,14 @@ const backendURL = "https://qualiotbackend.onrender.com/products";
 const router = useRouter();
 const isReloading = ref(false);
 
-onMounted(async () => {
-  await listarProdutos();
-  watch(() => {
-    if (isReloading.value) {
-      isReloading.value = true;
-      router.go(0);
-    }
-  });
+onMounted( () => {
+  listarProdutos();
   if (!localStorage.getItem("reloadDone")) {
     localStorage.setItem("reloadDone", "true");
+    isReloading.value = true;
     router.go(0);
+  } else {
+    isReloading.value = false;
   }
 });
 
@@ -433,11 +430,11 @@ const editarProduto = async (index) => {
 }
 .fade-horizontal-enter-active,
 .fade-horizontal-leave-active {
-  transition: all 0.5s ease;
+  transition: all 0.25s;
 }
 .fade-horizontal-enter-from,
 .fade-horizontal-leave-to {
   opacity: 0;
-  transform: translateX(-30px);
+  transform: translateX(-100px) scale(0.9);
 }
 </style>

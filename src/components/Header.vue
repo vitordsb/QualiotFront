@@ -107,8 +107,8 @@ watch(route, (newRoute) => {
 });
 
 function logout() {
+  localStorage.clear();
   clearUser();
-  localStorage.clear()
   router.push('/');
 }
 
