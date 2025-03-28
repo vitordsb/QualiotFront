@@ -135,7 +135,6 @@ function setActiveLink(path) {
   align-items: center;
   justify-content: center;
   position: relative;
-  border-bottom: #c9c9c986 2px solid;
 }
 
 .container {

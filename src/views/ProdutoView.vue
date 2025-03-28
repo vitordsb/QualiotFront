@@ -63,7 +63,8 @@
                   <button @click="confirmarRemocao(index)" class="btn-remover">
                     Remover
                   </button>
-                  <button @click="editarProduto(index)" class="btn-editar">
+                  <!-- Ao clicar em Editar, abre o modal com os dados do produto -->
+                  <button @click="openEditModal(index)" class="btn-editar">
                     Editar
                   </button>
                 </div>
@@ -76,26 +77,58 @@
         </div>
       </Transition>
     </div>
+
+    <!-- Modal para edição do produto -->
+    <Modal v-model="isEditModalOpen">
+      <h2>Editar Produto</h2>
+      <form @submit.prevent="submitEdit">
+        <div class="form-group">
+          <label for="editName">Nome do Produto:</label>
+          <input
+            type="text"
+            id="editName"
+            v-model="produtoEdicao.name"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label for="editDescription">Descrição:</label>
+          <textarea
+            id="editDescription"
+            v-model="produtoEdicao.description"
+            required
+          ></textarea>
+        </div>
+        <button type="submit" class="btn-editar">
+          Salvar Alterações
+        </button>
+      </form>
+    </Modal>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from "vue";
+import Modal from "../components/Modal.vue";
+
 const abaAtiva = ref("cadastrar");
 const produto = ref({ nome: "", descricao: "" });
 const produtos = ref([]);
 const isLoading = ref(false);
 const backendURL = "https://qualiotbackend.onrender.com/products";
 
-onMounted( async() => {
-  setTimeout( async() => {
+const isEditModalOpen = ref(false);
+const produtoEdicao = ref({ _id: "", name: "", description: "" });
+
+onMounted(async () => {
+  setTimeout(async () => {
     await listarProdutos();
-  }, 1400)
+  }, 1000);
 });
 
 const listarProdutos = async () => {
   try {
-    abaAtiva.value = 'listar'
+    abaAtiva.value = "listar";
     isLoading.value = true;
     const token = localStorage.getItem("token");
     const response = await fetch(backendURL, {
@@ -118,6 +151,7 @@ const listarProdutos = async () => {
     isLoading.value = false;
   }
 };
+
 const cadastrarProduto = async () => {
   if (produto.value.nome && produto.value.descricao) {
     try {
@@ -155,6 +189,7 @@ const cadastrarProduto = async () => {
     alert("Por favor, preencha todos os campos obrigatórios.");
   }
 };
+
 const removerProduto = async (index) => {
   const produtoRemovido = produtos.value[index];
   if (!produtoRemovido) return;
@@ -177,58 +212,57 @@ const removerProduto = async (index) => {
     alert("Erro ao remover o produto. Tente novamente.");
   }
 };
+
 const confirmarRemocao = (index) => {
   if (confirm("Tem certeza que deseja remover este produto?")) {
     removerProduto(index);
   }
 };
+
 const capitalizeFirstLetter = (string) => {
   return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
 };
-const editarProduto = async (index) => {
+
+const openEditModal = (index) => {
   const prod = produtos.value[index];
   if (!prod) {
-    alert("Produto não encontrado.");
     return;
   }
-  const newProductName = prompt("Digite o novo nome do produto", prod.name);
-  const newProductDescription = prompt(
-    "Digite a nova descrição do produto",
-    prod.description
-  );
-  if (newProductName === null || newProductDescription === null) {
-    alert("Edição cancelada.");
-    return;
-  }
-  const trimmedName = newProductName.trim();
-  const trimmedDescription = newProductDescription.trim();
-  if (!trimmedName || !trimmedDescription) {
-    alert("Os campos não podem estar vazios.");
+  produtoEdicao.value = { ...prod };
+  isEditModalOpen.value = true;
+};
+
+const submitEdit = async () => {
+  if (!produtoEdicao.value.name || !produtoEdicao.value.description) {
     return;
   }
   try {
     const token = localStorage.getItem("token");
-    const response = await fetch(`${backendURL}/${prod._id}`, {
+    const response = await fetch(`${backendURL}/${produtoEdicao.value._id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
         Authorization: `${token}`,
       },
       body: JSON.stringify({
-        name: trimmedName,
-        description: trimmedDescription,
+        name: produtoEdicao.value.name,
+        description: produtoEdicao.value.description,
       }),
     });
     const data = await response.json();
     if (!response.ok) {
       throw new Error(data.message || "Erro ao editar o produto");
     }
-    window.location.reload();
-    produtos.value[index] = data;
-    alert("Produto editado com sucesso!");
+    const index = produtos.value.findIndex(
+      (p) => p._id === produtoEdicao.value._id
+    );
+    if (index !== -1) {
+      produtos.value[index] = data;
+    }
+    isEditModalOpen.value = false;
+    listarProdutos();
   } catch (error) {
     console.error("Erro ao editar o produto:", error);
-    alert("Erro ao editar o produto. Tente novamente.");
   }
 };
 </script>

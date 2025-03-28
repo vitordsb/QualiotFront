@@ -1,17 +1,21 @@
 <script setup>
 import { ref, onMounted, watch } from "vue";
 import FormVue from "@/components/FormVue.vue";
+import Modal from "@/components/Modal.vue";
 
 const isLoading = ref(false);
 const tabs = ref([]);
 const activeIndex = ref(0);
 const categorias = ref([]);
+
 const props = defineProps({
   totalTabs: {
     type: Number,
     default: 1,
   },
 });
+const isAddTabModalOpen = ref(false);
+const newTabTitle = ref("");
 
 onMounted(async () => {
   isLoading.value = true;
@@ -29,14 +33,12 @@ onMounted(async () => {
     }
   }
 });
-
 watch(activeIndex, () => {
   const abaSelecionada = tabs.value[activeIndex.value]?._id;
   if (abaSelecionada) {
     localStorage.setItem("abaSelecionada", abaSelecionada);
   }
 });
-
 const removerTab = async () => {
   try {
     const token = localStorage.getItem("token");
@@ -67,12 +69,19 @@ const removerTab = async () => {
   }
 };
 
-const adicionarTab = async () => {
+const openAddTabModal = () => {
+  newTabTitle.value = "";
+  isAddTabModalOpen.value = true;
+};
+
+const submitNewTab = async () => {
+  if (!newTabTitle.value) {
+    alert("Insira o nome da nova categoria.");
+    return;
+  }
+  isLoading.value = true;
   try {
-    isLoading.value = true;
-    const novoTitulo = prompt("Insira o nome da nova categoria:");
     const token = localStorage.getItem("token");
-    if (!novoTitulo) return;
     const response = await fetch(
       `https://qualiotbackend.onrender.com/categorys/`,
       {
@@ -82,7 +91,7 @@ const adicionarTab = async () => {
           Authorization: `${token}`,
         },
         body: JSON.stringify({
-          name: novoTitulo,
+          name: newTabTitle.value,
           _idProduct: localStorage.getItem("produtoParaDarNota"),
         }),
       }
@@ -96,12 +105,14 @@ const adicionarTab = async () => {
       _id: data._id,
       inactive: false,
     });
-    alert("Nova aba criada, precisa ir para ela!");
-    listarTabs();
-    console.log("Nova categoria criada:", data);
+    alert("Nova aba criada, vá para ela!");
+    await listarTabs();
+    isAddTabModalOpen.value = false;
   } catch (error) {
-    isLoading.value = false;
     console.error("Erro ao adicionar nova aba:", error);
+    alert("Erro ao adicionar nova aba, tente novamente.");
+  } finally {
+    isLoading.value = false;
   }
 };
 
@@ -144,7 +155,6 @@ const listarTabs = async () => {
         localStorage.setItem("abaSelecionada", abaSelecionada);
       }
       activeIndex.value = tabs.value.findIndex((tab) => tab._id === abaSelecionada);
-
     } else {
       console.error("Estrutura inesperada: ", data);
       throw new Error("Os dados recebidos não são um array");
@@ -160,7 +170,6 @@ onMounted(() => {
   listarTabs();
 });
 
-
 const setActiveTab = (index) => {
   activeIndex.value = index;
   const abaSelecionada = tabs.value[activeIndex.value]?._id;
@@ -168,7 +177,6 @@ const setActiveTab = (index) => {
     localStorage.setItem("abaSelecionada", abaSelecionada);
   }
 };
-
 </script>
 
 <template>
@@ -193,22 +201,35 @@ const setActiveTab = (index) => {
             @click.stop="removerTab(index)"
             class="btn-removerTab"
           >
-          X
+            X
           </button>
         </div>
       </div>
       <div class="add">
-        <button @click="adicionarTab" class="addAba">+</button>
+        <!-- Altera a chamada para abrir o modal -->
+        <button @click="openAddTabModal" class="addAba">+</button>
         <p>New tab</p>
       </div>
     </div>
-      <transition name="fade-horizontal" mode="out-in">
-        <div :key="activeIndex" class="tab-content">
-          <h2>Requisito: {{ tabs[activeIndex]?.title }}</h2>
-          <FormVue :key="activeIndex" :tab-index="activeIndex" />
-        </div>
-      </transition>
+    <transition name="fade-horizontal" mode="out-in">
+      <div :key="activeIndex" class="tab-content">
+        <h2>Requisito: {{ tabs[activeIndex]?.title }}</h2>
+        <FormVue :key="activeIndex" :tab-index="activeIndex" />
+      </div>
+    </transition>
   </section>
+
+  <!-- Modal para criar nova aba -->
+  <Modal v-model="isAddTabModalOpen">
+    <h2>Nova Categoria</h2>
+    <form @submit.prevent="submitNewTab" class="modal-form">
+      <div class="modal-form-group">
+        <label for="newTabTitle">Nome da Categoria:</label>
+        <input type="text" id="newTabTitle" v-model="newTabTitle" required />
+      </div>
+      <button type="submit" class="btn btn-primary">Criar</button>
+    </form>
+  </Modal>
 </template>
 
 <style scoped>
@@ -218,11 +239,13 @@ const setActiveTab = (index) => {
   transition: calc(0.3s);
 }
 .abas {
+  height: auto;
   display: flex;
   justify-content: start;
   flex-direction: column;
   align-items: start;
   margin-right: 3%;
+  padding: 10px;
   gap: 10px;
   transition: calc(0.5s);
 }
@@ -252,7 +275,7 @@ const setActiveTab = (index) => {
 .tab-button {
   font-weight: bolder;
   border: none;
-  width: auto;
+  width: 150px;
   padding: 12px 12px;
   margin: 0 5px;
   text-align: start;
@@ -326,6 +349,26 @@ const setActiveTab = (index) => {
   opacity: 0;
   transform: translateX(20px);
 }
+.modal-form {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.modal-form-group {
+  display: flex;
+  flex-direction: column;
+}
+.modal-form-group label {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+.modal-form-group input {
+  padding: 15px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
 @media (max-width: 768px) {
   .abas {
     flex-direction: column;
