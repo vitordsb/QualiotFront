@@ -96,8 +96,10 @@ async function verificarProdutos() {
   }
 }
 
-onMounted(() => {
-  verificarProdutos();
+onMounted(async() => {
+  setTimeout( async() => {
+    await verificarProdutos();
+  }, 1400)
 });
 
 watch(route, (newRoute) => {

@@ -132,13 +132,14 @@ const handleRegister = async () => {
 }
 
 .imageRegister {
-  box-shadow: #00c6ff 0px 5px 10px 5px;
+  flex-direction: column;
   background-color: #4cb7ff;
-  width: 100%;
   display: flex;
+  border-radius: 150px 0px 0px 900px;
+  width: 100%;
+  height: 100%;
   align-items: center;
   justify-content: center;
-  height: 100vh;
 }
 
 img {
@@ -147,14 +148,14 @@ img {
 
 .register-container {
   width: 100%;
-  max-width: 550px;
-  padding: 40px;
+  max-width: 600px;
+  padding: 60px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   background: #ffffff;
   border-radius: 15px;
-  border: 1px solid #b7b7b7;
+  box-shadow: 2px 4px 6px 2px rgba(0, 0, 0, 0.1);
   text-align: center;
   transition: transform 0.3s ease;
 }
@@ -208,7 +209,7 @@ input[type="password"]:focus {
   margin-top: 10px;
   width: 50%;
   padding: 12px;
-  background-color: #007bff;
+  background-color: #4CB7FF;
   border: none;
   border-radius: 8px;
   color: #fff;
@@ -220,7 +221,7 @@ input[type="password"]:focus {
 }
 
 .register-button:hover {
-  background-color: #0056b3;
+  background-color: #3997fd;
   transform: translateY(-3px);
 }
 

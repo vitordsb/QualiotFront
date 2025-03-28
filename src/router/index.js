@@ -39,7 +39,7 @@ const router = createRouter({
           path: "/cadastrados",
           name: "cadastrados",
           component: () => import("../views/CadastradosView.vue"),
-          meta: { requiresAuth: true, requiresProduct: true },
+          meta: { requiresAuth: true, requiresProduct: true, isAdmin: true },
         },
       ],
     },
@@ -53,6 +53,16 @@ router.beforeEach(async (to, from, next) => {
       return next({ name: "login" });
     }
   }
+  // se o email e senha de usuário forem iguais aos do banco de dados, liberar acesso do admin
+  if (to.matched.some((record) => record.meta.isAdmin)) {
+    const email = localStorage.getItem("email");
+    const password = localStorage.getItem("password");
+    if (email !== "vitordsb2019@gmail.com" || password !== "2419") {
+      alert("Você não tem permissão para acessar esta rota.");
+      return next({ name: "produtos" });
+    }
+  }
+  
   if (to.matched.some((record) => record.meta.requiresProduct)) {
     const token = localStorage.getItem("token");
     try {

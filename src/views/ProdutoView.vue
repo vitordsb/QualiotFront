@@ -81,25 +81,17 @@
 
 <script setup>
 import { ref, onMounted, watch } from "vue";
-import { useRouter } from "vue-router";
 const abaAtiva = ref("cadastrar");
 const produto = ref({ nome: "", descricao: "" });
 const produtos = ref([]);
 const isLoading = ref(false);
 const backendURL = "https://qualiotbackend.onrender.com/products";
 
-const router = useRouter();
-const isReloading = ref(false);
 
-onMounted( () => {
-  listarProdutos();
-  if (!localStorage.getItem("reloadDone")) {
-    localStorage.setItem("reloadDone", "true");
-    isReloading.value = true;
-    router.go(0);
-  } else {
-    isReloading.value = false;
-  }
+onMounted( async() => {
+  setTimeout( async() => {
+    await listarProdutos();
+  }, 1400)
 });
 
 const listarProdutos = async () => {

@@ -2,8 +2,8 @@
 import { ref, onMounted, watch } from "vue";
 import FormVue from "@/components/FormVue.vue";
 
+const isLoading = ref(false);
 const tabs = ref([]);
-const isLoading = ref(true);
 const activeIndex = ref(0);
 const categorias = ref([]);
 const props = defineProps({
@@ -14,6 +14,7 @@ const props = defineProps({
 });
 
 onMounted(async () => {
+  isLoading.value = true;
   await listarTabs();
   if (tabs.value.length > 0) {
     if (!localStorage.getItem("abaSelecionada")) {
@@ -98,7 +99,6 @@ const adicionarTab = async () => {
     alert("Nova aba criada, precisa ir para ela!");
     listarTabs();
     console.log("Nova categoria criada:", data);
-    isLoading.value = false;
   } catch (error) {
     isLoading.value = false;
     console.error("Erro ao adicionar nova aba:", error);
@@ -130,26 +130,19 @@ const listarTabs = async () => {
         _id: item._id,
         inactive: false,
       }));
-
-      // Verifique se já existe uma aba selecionada no localStorage
       let abaSelecionada = localStorage.getItem("abaSelecionada");
       categorias.value = data.category;
-      // Se não existir abaSelecionada, defina a primeira aba
       if (!abaSelecionada && tabs.value.length > 0) {
-        abaSelecionada = tabs.value[0]._id;  // A primeira aba
-        localStorage.setItem("abaSelecionada", abaSelecionada);  // Salve no localStorage
+        abaSelecionada = tabs.value[0]._id;
+        localStorage.setItem("abaSelecionada", abaSelecionada);
       }
-      
-      // Se já houver uma aba selecionada, garanta que seja válida
       const abaValida = tabs.value.find((tab) => tab._id === abaSelecionada);
       if (abaValida) {
         localStorage.setItem("abaSelecionada", abaValida._id);
       } else {
-        abaSelecionada = tabs.value[0]._id;  // Se a aba não for válida, use a primeira
+        abaSelecionada = tabs.value[0]._id;
         localStorage.setItem("abaSelecionada", abaSelecionada);
       }
-
-      // Agora defina o índice ativo com base na aba selecionada
       activeIndex.value = tabs.value.findIndex((tab) => tab._id === abaSelecionada);
 
     } else {
@@ -164,7 +157,7 @@ const listarTabs = async () => {
 };
 
 onMounted(() => {
-  listarTabs();  // Carregar as tabs quando o componente for montado
+  listarTabs();
 });
 
 
@@ -177,7 +170,6 @@ const setActiveTab = (index) => {
 };
 
 </script>
-5
 
 <template>
   <section class="regras-view">
@@ -201,7 +193,7 @@ const setActiveTab = (index) => {
             @click.stop="removerTab(index)"
             class="btn-removerTab"
           >
-            X
+          X
           </button>
         </div>
       </div>
@@ -210,18 +202,12 @@ const setActiveTab = (index) => {
         <p>New tab</p>
       </div>
     </div>
-    <div class="conteudo">
-      <div class="grid-container">
-        <div class="formulario">
-          <transition name="fade-horizontal" mode="out-in">
-            <div :key="activeIndex" class="tab-content">
-              <h2>Categoria: {{ tabs[activeIndex]?.title }}</h2>
-              <FormVue :key="activeIndex" :tab-index="activeIndex" />
-            </div>
-          </transition>
+      <transition name="fade-horizontal" mode="out-in">
+        <div :key="activeIndex" class="tab-content">
+          <h2>Requisito: {{ tabs[activeIndex]?.title }}</h2>
+          <FormVue :key="activeIndex" :tab-index="activeIndex" />
         </div>
-      </div>
-    </div>
+      </transition>
   </section>
 </template>
 
@@ -236,19 +222,24 @@ const setActiveTab = (index) => {
   justify-content: start;
   flex-direction: column;
   align-items: start;
-  margin-right: 30px;
+  margin-right: 3%;
   gap: 10px;
+  transition: calc(0.5s);
 }
 .tabs-container {
+  margin-top: 20px;
   display: flex;
   flex-direction: column;
   gap: 15px;
   flex-wrap: wrap;
   justify-content: flex-start;
+  transition: calc(0.5s);
 }
 .tab-item {
   position: relative;
-  display: inline-block;
+  display: flex;
+  align-items: center;
+  transition: calc(0.5s);
 }
 .add {
   cursor: default;
@@ -256,19 +247,20 @@ const setActiveTab = (index) => {
   gap: 10px;
   align-items: center;
   justify-content: center;
+  transition: calc(0.5s);
 }
 .tab-button {
   font-weight: bolder;
   border: none;
-  width: 130px;
-  padding: 10px 10px;
+  width: auto;
+  padding: 12px 12px;
   margin: 0 5px;
   text-align: start;
   background-color: #c7e9ff;
   border-radius: 10px;
   cursor: pointer;
   font-size: 18px;
-  transition: background-color 0.3s, transform 0.3s;
+  transition: calc(0.5s);
 }
 .tab-button:hover {
   background-color: #007bff;
@@ -285,9 +277,7 @@ const setActiveTab = (index) => {
   cursor: not-allowed;
 }
 .btn-removerTab {
-  position: absolute;
-  top: 2px;
-  right: -10px;
+  position: relative;
   background-color: #ff4658;
   color: white;
   border: none;
@@ -297,7 +287,7 @@ const setActiveTab = (index) => {
   font-size: 14px;
   cursor: pointer;
   transition: background-color 0.3s;
-  z-index: 2;
+  z-index: 1;
 }
 .btn-removerTab:hover {
   background-color: #ff0019;
@@ -306,29 +296,26 @@ const setActiveTab = (index) => {
   background-color: #28a745;
   color: white;
   font-size: 20px;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  border-radius: 20%;
+  width: 50px;
+  height: 50px;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
   border: none;
-  transition: background-color 0.3s, transform 0.3s;
+  transition: calc(0.5s);
 }
 .addAba:hover {
   background-color: #218838;
   transform: scale(1.05);
 }
 .tab-content h2 {
+  transition: calc(0.5s);
   text-align: start;
-  padding: 15px;
-  font-size: 58px;
+  padding: 20px;
+  font-size: 60px;
   color: #000000;
-}
-.formulario {
-  width: 100%;
-  border-radius: 10px;
 }
 .fade-horizontal-enter-active,
 .fade-horizontal-leave-active {

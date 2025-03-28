@@ -127,7 +127,7 @@ const handleLogin = async () => {
 }
 
 img {
-  width: 750px;
+  width: 550px;
 }
 
 @media (max-width: 700px) {
@@ -151,10 +151,10 @@ img {
 }
 
 .image {
-  box-shadow: #4cb7ff 5px 5px 10px;
   flex-direction: column;
   background-color: #4cb7ff;
   display: flex;
+  border-radius: 0px 150px 900px 0px;
   width: 100%;
   height: 100%;
   align-items: center;
@@ -162,7 +162,7 @@ img {
 }
 
 .login-container {
-  border: 1px solid #b7b7b7;
+  box-shadow: 2px 4px 6px 2px rgba(0, 0, 0, 0.1);;
   width: 100%;
   max-width: 600px;
   padding: 50px;

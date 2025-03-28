@@ -141,7 +141,7 @@ const proficiencyTextStyle = computed(() => {
 const exportPDF = () => {
   const element = reportSection.value;
   const opt = {
-    margin: [0, 0, 0, 0],  // Remover margens
+    margin: [0, 0, 0, 0], 
     filename: 'QualiotReport.pdf',
     image: { type: 'jpeg', quality: 1 },
     html2canvas: { scale: 1 },
@@ -149,9 +149,9 @@ const exportPDF = () => {
       unit: 'in',
       format: 'letter',
       orientation: 'portrait',
-      compress: true,  // Garantir que o conteúdo seja compactado se necessário
-      putOnlyUsedFonts: true, // Usar apenas fontes necessárias
-      maxWidth: 600,  // Limitar a largura para ajustar o conteúdo
+      compress: true, 
+      putOnlyUsedFonts: true,
+      maxWidth: 600, 
     },
   };
   html2pdf().set(opt).from(element).save();
@@ -229,7 +229,7 @@ const exportPDF = () => {
   padding: 20px;
   border-radius: 10px;
   margin-bottom: 20px;
-  page-break-inside: avoid; /* Evita que o conteúdo da categoria se divida em duas páginas */
+  page-break-inside: avoid;
 }
 
 .category-item h3 {
@@ -248,7 +248,7 @@ const exportPDF = () => {
 
 .questions {
   margin-top: 15px;
-  page-break-inside: avoid; /* Evita que as perguntas se dividam no meio */
+  page-break-inside: avoid;
 }
 
 .question-item {
@@ -318,12 +318,10 @@ const exportPDF = () => {
   to { transform: rotate(360deg); }
 }
 
-/* Quebra de página apenas onde necessário */
 .page-break {
-  page-break-before: always; /* Use quando quiser forçar o início de uma nova página */
+  page-break-before: always;
 }
 
-/* Evitar quebras indesejadas dentro de blocos */
 .page-break-inside-avoid {
   page-break-inside: avoid;
 }
