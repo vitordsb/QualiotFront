@@ -80,13 +80,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted } from "vue";
 const abaAtiva = ref("cadastrar");
 const produto = ref({ nome: "", descricao: "" });
 const produtos = ref([]);
 const isLoading = ref(false);
 const backendURL = "https://qualiotbackend.onrender.com/products";
-
 
 onMounted( async() => {
   setTimeout( async() => {

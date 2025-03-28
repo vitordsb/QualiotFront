@@ -96,9 +96,9 @@ async function verificarProdutos() {
   }
 }
 
-onMounted(async() => {
-  setTimeout( async() => {
-    await verificarProdutos();
+onMounted(() => {
+  setTimeout(() => {
+   verificarProdutos();
   }, 1400)
 });
 
