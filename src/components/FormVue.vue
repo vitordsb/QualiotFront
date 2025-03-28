@@ -6,10 +6,35 @@
   <div v-else class="form">
     <div class="form-container">
       <div class="questionario">
+        
         <form @submit.prevent class="perguntas">
-          <div class="pergunta" v-for="(pergunta, index) in perguntas" :key="index">
+          
+          <div
+            class="pergunta"
+            v-for="(pergunta, index) in perguntas"
+            :key="index"
+          >
             <div class="info">
-              <label :for="'pergunta' + index">{{ pergunta }}:</label>
+              <div class="display">
+                <label :for="'pergunta' + index">{{ pergunta }}:</label>
+                <div class="tags-display">
+                <span
+                  v-for="(tag, idx) in tags[index]"
+                  :key="idx"
+                  class="tag-badge"
+                >
+                  {{ tag }}
+                </span>
+                </div>
+              </div>
+              <div class="tags-actions">
+                <button
+                  @click.prevent="openEditTagsModal(index)"
+                  class="btn btn-tags"
+                >
+                  Tags
+                </button>
+              </div>
               <p>{{ descricao[index] }}</p>
             </div>
             <div class="notasGroup">
@@ -33,17 +58,21 @@
                   cols="30"
                   rows="3"
                 ></textarea>
-                <button @click.prevent="removerPergunta(index)" class="btn btn-remover">
-                  <img src="/public/assets/icons/iconTrash.png" alt="">
+                <button
+                  @click.prevent="removerPergunta(index)"
+                  class="btn btn-remover"
+                >
+                  <img src="/public/assets/icons/iconTrash.png" alt="" />
                 </button>
               </div>
+            
             </div>
+            <!-- Botão para abrir o modal de edição/adição de tags -->
           </div>
         </form>
       </div>
       <div v-if="perguntas.length" class="botoes">
         <div class="buttons">
-          <!-- Abre o modal para adicionar uma nova pergunta -->
           <button @click="openAddQuestionModal" class="btn btn-adicionar">
             Adicionar questão
           </button>
@@ -65,8 +94,6 @@
       </div>
     </div>
   </div>
-
-  <!-- Modal para adicionar nova pergunta -->
   <Modal v-model="isAddQuestionModalOpen">
     <h2>Adicionar questão</h2>
     <form @submit.prevent="submitNewQuestion" class="modal-form">
@@ -81,11 +108,26 @@
       <button type="submit" class="btn btn-primary">Adicionar</button>
     </form>
   </Modal>
+
+  <Modal v-model="isEditTagsModalOpen">
+    <div class="modal-tags-container">
+      <h2 v-if="currentTagQuestionIndex !== null">
+        Sobre as tags:
+        <span class="question-title">{{ perguntas[currentTagQuestionIndex] }}</span>
+      </h2>
+      <TagsEditor
+        v-if="currentTagQuestionIndex !== null"
+        v-model="tags[currentTagQuestionIndex]"
+      />
+      <button @click="saveTags" class="btn btn-primary">Salvar</button>
+    </div>
+  </Modal>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
-import Modal from '../components/Modal.vue'; // ajuste o caminho conforme necessário
+import { ref, onMounted, watch } from "vue";
+import Modal from "../components/Modal.vue";
+import TagsEditor from "../components/TagsEditor.vue";
 
 const props = defineProps({
   tabIndex: {
@@ -97,6 +139,7 @@ const props = defineProps({
     default: 1,
   },
 });
+
 const justificativa = ref([]);
 const descricao = ref([]);
 const perguntas = ref([]);
@@ -104,20 +147,32 @@ const isLoading = ref(true);
 const notas = ref([]);
 const pesos = ref([]);
 const media = ref(0);
+const tags = ref([]); 
 
-// Estados para o modal de adicionar pergunta
+const newQuestionTitle = ref("");
+const newQuestionDescription = ref("");
+const newQuestionTags = ref([]);
 const isAddQuestionModalOpen = ref(false);
-const newQuestionTitle = ref('');
-const newQuestionDescription = ref('');
+const isEditTagsModalOpen = ref(false);
+const currentTagQuestionIndex = ref(null);
+
+watch(isAddQuestionModalOpen, (val) => {
+  if (val) {
+    isEditTagsModalOpen.value = false;
+  }
+});
+
+watch(isEditTagsModalOpen, (val) => {
+  if (val) {
+    isAddQuestionModalOpen.value = false;
+  }
+});
 
 watch(isLoading, (newValue) => {
-  const overlay = document.querySelector('.loading-overlay');
+  const overlay = document.querySelector(".loading-overlay");
   if (overlay) {
-    if (newValue) {
-      overlay.classList.add('active');
-    } else {
-      overlay.classList.remove('active');
-    }
+    if (newValue) overlay.classList.add("active");
+    else overlay.classList.remove("active");
   }
 });
 watch(
@@ -155,44 +210,45 @@ const distribuirPesos = () => {
   }
 };
 
-// Abre o modal para adicionar nova pergunta
 const openAddQuestionModal = () => {
-  newQuestionTitle.value = '';
-  newQuestionDescription.value = '';
+  newQuestionTitle.value = "";
+  newQuestionDescription.value = "";
+  newQuestionTags.value = [];
   isAddQuestionModalOpen.value = true;
 };
 
-// Submete a nova pergunta enviada via modal
 const submitNewQuestion = async () => {
   if (!newQuestionTitle.value || !newQuestionDescription.value) {
-    alert('Título e descrição são obrigatórios.');
+    alert("Título e descrição são obrigatórios.");
     return;
   }
   isLoading.value = true;
   try {
-    const token = localStorage.getItem('token');
-    const response = await fetch('https://qualiotbackend.onrender.com/questions', {
-      method: 'POST',
+    const token = localStorage.getItem("token");
+    const response = await fetch("https://qualiotbackend.onrender.com/questions", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         Authorization: `${token}`,
       },
       body: JSON.stringify({
         title: newQuestionTitle.value,
         announced: newQuestionDescription.value,
-        _idCategory: localStorage.getItem('abaSelecionada'),
+        _idCategory: localStorage.getItem("abaSelecionada"),
       }),
     });
-    if (!response.ok) {
-      throw new Error('Erro ao cadastrar pergunta.');
-    }
+    if (!response.ok) throw new Error("Erro ao cadastrar pergunta.");
     const data = await response.json();
     console.log("Pergunta cadastrada", data);
     await buscarPerguntas();
+    const newIndex = perguntas.value.length - 1;
+    localStorage.setItem(`tags_question_${props.tabIndex}_${newIndex}`, JSON.stringify(newQuestionTags.value));
+    tags.value[newIndex] = [...newQuestionTags.value];
+    newQuestionTags.value = [];
     isAddQuestionModalOpen.value = false;
   } catch (error) {
-    console.error('Erro ao cadastrar pergunta:', error);
-    alert('Erro ao cadastrar pergunta. Tente novamente.');
+    console.error("Erro ao cadastrar pergunta:", error);
+    alert("Erro ao cadastrar pergunta. Tente novamente.");
   } finally {
     isLoading.value = false;
   }
@@ -202,39 +258,36 @@ const removerPergunta = async (index) => {
   try {
     isLoading.value = true;
     const storedPerguntasId = localStorage.getItem(`perguntasId_tab_${props.tabIndex}`);
-    if (!storedPerguntasId) {
-      throw new Error('Nenhum ID de pergunta encontrado.');
-    }
+    if (!storedPerguntasId) throw new Error("Nenhum ID de pergunta encontrado.");
     const perguntasIdArray = JSON.parse(storedPerguntasId);
     const perguntaId = perguntasIdArray[index];
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     const response = await fetch(`https://qualiotbackend.onrender.com/questions/${perguntaId}`, {
-      method: 'DELETE',
+      method: "DELETE",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         Authorization: `${token}`,
       },
     });
-    if (!response.ok) {
-      throw new Error('Erro ao remover pergunta.');
-    }
-    const data = await response.json();
+    if (!response.ok) throw new Error("Erro ao remover pergunta.");
+    await response.json();
     perguntas.value.splice(index, 1);
     descricao.value.splice(index, 1);
     notas.value.splice(index, 1);
     pesos.value.splice(index, 1);
     justificativa.value.splice(index, 1);
+    tags.value.splice(index, 1);
     perguntasIdArray.splice(index, 1);
     localStorage.setItem(`perguntasId_tab_${props.tabIndex}`, JSON.stringify(perguntasIdArray));
     localStorage.setItem(`perguntas_tab_${props.tabIndex}`, JSON.stringify(perguntas.value));
     localStorage.setItem(`descricao_tab_${props.tabIndex}`, JSON.stringify(descricao.value));
     localStorage.setItem(`notas_tab_${props.tabIndex}`, JSON.stringify(notas.value));
     localStorage.setItem(`pesos_tab_${props.tabIndex}`, JSON.stringify(pesos.value));
-    console.log('Pergunta removida', data);
+    localStorage.setItem(`tags_tab_${props.tabIndex}`, JSON.stringify(tags.value));
     await buscarPerguntas();
   } catch (error) {
-    console.error('Erro ao remover pergunta:', error);
-    alert('Erro ao remover pergunta. Tente novamente.');
+    console.error("Erro ao remover pergunta:", error);
+    alert("Erro ao remover pergunta. Tente novamente.");
   } finally {
     isLoading.value = false;
   }
@@ -242,8 +295,8 @@ const removerPergunta = async (index) => {
 
 const buscarPerguntas = async () => {
   try {
-    const token = localStorage.getItem('token');
-    const abaSelecionada = localStorage.getItem('abaSelecionada');
+    const token = localStorage.getItem("token");
+    const abaSelecionada = localStorage.getItem("abaSelecionada");
     if (!abaSelecionada) {
       console.error("A aba selecionada não foi encontrada.");
       return;
@@ -251,20 +304,20 @@ const buscarPerguntas = async () => {
     const response = await fetch(
       `https://qualiotbackend.onrender.com/questions/get-by-category/${abaSelecionada}`,
       {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `${token}`,
         },
       }
     );
     const data = await response.json();
-    console.log(data);
     if (data && Array.isArray(data.questionCategory)) {
       perguntas.value = [];
       descricao.value = [];
       notas.value = [];
       justificativa.value = [];
+      tags.value = [];
       for (let i = 0; i < data.questionCategory.length; i++) {
         perguntas.value.push(data.questionCategory[i].title);
         descricao.value.push(data.questionCategory[i].announced);
@@ -272,53 +325,62 @@ const buscarPerguntas = async () => {
         notas.value.push(savedNota ? JSON.parse(savedNota) : (data.questionCategory[i].grade || 0));
         const savedJustificativa = localStorage.getItem(`justification_tab_${props.tabIndex}_${i}`);
         justificativa.value.push(savedJustificativa || "");
+        const savedTags = localStorage.getItem(`tags_question_${props.tabIndex}_${i}`);
+        tags.value.push(savedTags ? JSON.parse(savedTags) : []);
       }
       distribuirPesos();
       localStorage.setItem(`perguntas_tab_${props.tabIndex}`, JSON.stringify(perguntas.value));
       localStorage.setItem(`descricao_tab_${props.tabIndex}`, JSON.stringify(descricao.value));
       localStorage.setItem(`notas_tab_${props.tabIndex}`, JSON.stringify(notas.value));
       localStorage.setItem(`pesos_tab_${props.tabIndex}`, JSON.stringify(pesos.value));
+      localStorage.setItem(`tags_tab_${props.tabIndex}`, JSON.stringify(tags.value));
       localStorage.setItem(
         `perguntasId_tab_${props.tabIndex}`,
         JSON.stringify(data.questionCategory.map((item) => item._id))
       );
     } else {
-      console.error('Estrutura inesperada: questionCategory não é um array');
+      console.error("Estrutura inesperada: questionCategory não é um array");
     }
   } catch (error) {
-    console.error('Erro ao buscar perguntas:', error);
+    console.error("Erro ao buscar perguntas:", error);
+  }
+};
+
+const openEditTagsModal = (index) => {
+  currentTagQuestionIndex.value = index;
+  isEditTagsModalOpen.value = true;
+};
+
+const saveTags = () => {
+  if (currentTagQuestionIndex.value !== null) {
+    localStorage.setItem(
+      `tags_question_${props.tabIndex}_${currentTagQuestionIndex.value}`,
+      JSON.stringify(tags.value[currentTagQuestionIndex.value])
+    );
+    localStorage.setItem(`tags_tab_${props.tabIndex}`, JSON.stringify(tags.value));
+    isEditTagsModalOpen.value = false;
+    currentTagQuestionIndex.value = null;
   }
 };
 
 const updateQuestionGrades = async () => {
   const storedPerguntasId = localStorage.getItem(`perguntasId_tab_${props.tabIndex}`);
-  if (!storedPerguntasId) {
-    return;
-  }
+  if (!storedPerguntasId) return;
   const perguntasIdArray = JSON.parse(storedPerguntasId);
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem("token");
   let storedNotas = JSON.parse(localStorage.getItem(`notas_tab_${props.tabIndex}`)) || [];
   const updatePromises = perguntasIdArray.map(async (id, i) => {
     let gradeValue = parseFloat(notas.value[i]);
-    if (isNaN(gradeValue)) {
-      gradeValue = storedNotas[i] !== undefined ? storedNotas[i] : 0;
-    }
+    if (isNaN(gradeValue)) gradeValue = storedNotas[i] !== undefined ? storedNotas[i] : 0;
     const response = await fetch(`https://qualiotbackend.onrender.com/questions/${id}`, {
-      method: 'PATCH',
+      method: "PATCH",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         Authorization: `${token}`,
       },
-      body: JSON.stringify({
-        grade: gradeValue,
-      }),
+      body: JSON.stringify({ grade: gradeValue }),
     });
-    const data = await response.json();
-    if (!response.ok) {
-      console.error(`Erro ao atualizar grade para a pergunta ${id}`, data);
-    } else {
-      console.log(`Nota atualizada com sucesso para a pergunta ${id}`);
-    }
+    await response.json();
   });
   await Promise.all(updatePromises);
   await buscarPerguntas();
@@ -330,15 +392,12 @@ const calcularMediaAba = async () => {
   let somaPonderada = 0;
   for (let i = 0; i < perguntas.value.length; i++) {
     let notaAtual = parseFloat(notas.value[i]);
-    if (isNaN(notaAtual)) {
-      notaAtual = 0;
-    }
+    if (isNaN(notaAtual)) notaAtual = 0;
     const peso = pesos.value[i] || 0;
     somaPonderada += notaAtual * peso;
     somaPesos += peso;
   }
-  const resultadoMedia = somaPesos > 0 ? (somaPonderada / somaPesos) : 0;
-  media.value = Number(resultadoMedia.toFixed(2));
+  media.value = Number((somaPesos > 0 ? somaPonderada / somaPesos : 0).toFixed(2));
   localStorage.setItem(`notas_tab_${props.tabIndex}`, JSON.stringify(notas.value));
   localStorage.setItem(`notaAba_tab_${props.tabIndex}`, media.value);
   updateQuestionGrades();
@@ -349,7 +408,7 @@ const buscarJustificativa = async () => {
     const storedPerguntasId = localStorage.getItem(`perguntasId_tab_${props.tabIndex}`);
     if (!storedPerguntasId) return;
     const perguntasIdArray = JSON.parse(storedPerguntasId);
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     let justificationsArray = [];
     for (let i = 0; i < perguntasIdArray.length; i++) {
       const id = perguntasIdArray[i];
@@ -357,16 +416,13 @@ const buscarJustificativa = async () => {
       if (storedJustification) {
         justificationsArray[i] = storedJustification;
       } else {
-        const response = await fetch(
-          `https://qualiotbackend.onrender.com/justifications/get-by-question/${id}`,
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `${token}`,
-            },
-          }
-        );
+        const response = await fetch(`https://qualiotbackend.onrender.com/justifications/get-by-question/${id}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `${token}`,
+          },
+        });
         const data = await response.json();
         if (data.justificationQuestions && data.justificationQuestions.length > 0) {
           justificationsArray[i] = data.justificationQuestions[0].justification || "";
@@ -378,16 +434,16 @@ const buscarJustificativa = async () => {
     }
     justificativa.value = justificationsArray;
   } catch (error) {
-    console.error('Erro ao buscar justificativa:', error);
+    console.error("Erro ao buscar justificativa:", error);
   }
 };
 
 const enviarJustificativas = async () => {
   try {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     const storedPerguntasId = localStorage.getItem(`perguntasId_tab_${props.tabIndex}`);
     if (!storedPerguntasId) {
-      alert('Nenhuma pergunta encontrada para enviar justificativas.');
+      alert("Nenhuma pergunta encontrada para enviar justificativas.");
       return;
     }
     const perguntasIdArray = JSON.parse(storedPerguntasId);
@@ -397,9 +453,9 @@ const enviarJustificativas = async () => {
         const storedJustificationId = localStorage.getItem(`justification_id_tab_${props.tabIndex}_${i}`);
         if (storedJustificationId) {
           const responsePut = await fetch(`https://qualiotbackend.onrender.com/justifications/${storedJustificationId}`, {
-            method: 'PUT',
+            method: "PUT",
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
               Authorization: `${token}`,
             },
             body: JSON.stringify({
@@ -407,18 +463,12 @@ const enviarJustificativas = async () => {
               _idQuestionCategory: perguntasIdArray[i],
             }),
           });
-          const data = await responsePut.json();
-          if (responsePut.ok) {
-            console.log('Justificativa atualizada com sucesso!');
-            localStorage.setItem(`justification_tab_${props.tabIndex}_${i}`, justification);
-          } else {
-            console.error('Erro ao atualizar justificativa:', data);
-          }
+          await responsePut.json();
         } else {
-          const responsePost = await fetch('https://qualiotbackend.onrender.com/justifications', {
-            method: 'POST',
+          const responsePost = await fetch("https://qualiotbackend.onrender.com/justifications", {
+            method: "POST",
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
               Authorization: `${token}`,
             },
             body: JSON.stringify({
@@ -428,18 +478,15 @@ const enviarJustificativas = async () => {
           });
           const data = await responsePost.json();
           if (responsePost.ok) {
-            console.log('Justificativa criada com sucesso!');
             localStorage.setItem(`justification_id_tab_${props.tabIndex}_${i}`, data._id);
             localStorage.setItem(`justification_tab_${props.tabIndex}_${i}`, justification);
-          } else {
-            console.error('Erro ao criar justificativa:', data);
           }
         }
       }
     }
-    await buscarJustificativa(); 
+    await buscarJustificativa();
   } catch (error) {
-    console.error('Erro ao enviar justificativas:', error);
+    console.error("Erro ao enviar justificativas:", error);
   }
 };
 
@@ -465,7 +512,7 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* Estilos existentes */
+
 .groupjustify {
   display: flex;
   flex-direction: column;
@@ -520,11 +567,11 @@ onMounted(async () => {
 }
 .info {
   width: auto;
-  margin-right: 20px;
+  margin-right: 10px;
   display: flex;
   align-items: center;
   justify-content: start;
-  gap: 50px;
+  gap: 20px;
 }
 .info label {
   padding: 0px 10px;
@@ -706,7 +753,7 @@ onMounted(async () => {
     transform: translateY(0);
   }
 }
-/* Estilos para o modal de adicionar pergunta */
+
 .modal-form {
   margin-top: 20px;
   display: flex;
@@ -762,4 +809,40 @@ onMounted(async () => {
     gap: 20px;
   }
 }
+
+.tags-display {
+  margin-top: 10px;
+  display: flex;
+  width: 300px;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.tag-badge {
+  background-color: #f0ad4e;
+  color: #ffffff;
+  font-weight: bolder;
+  padding: 4px 8px;
+  border-radius: 15px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.tags-actions {
+  margin-top: 5px;
+}
+
+.btn-tags {
+  background-color: #f0ad4e;
+  border: none;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-tags:hover {
+  background-color: #ec971f;
+}
+
 </style>
