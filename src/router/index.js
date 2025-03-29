@@ -53,16 +53,14 @@ router.beforeEach(async (to, from, next) => {
       return next({ name: "login" });
     }
   }
-  // se o email e senha de usuário forem iguais aos do banco de dados, liberar acesso do admin
   if (to.matched.some((record) => record.meta.isAdmin)) {
-    const email = localStorage.getItem("email");
-    const password = localStorage.getItem("password");
-    if (email !== "vitordsb2019@gmail.com" || password !== "2419") {
+    const email = localStorage.getItem("email")
+    if (email !== "vitordsb2019@gmail.com") {
       alert("Você não tem permissão para acessar esta rota.");
       return next({ name: "produtos" });
     }
   }
-  
+
   if (to.matched.some((record) => record.meta.requiresProduct)) {
     const token = localStorage.getItem("token");
     try {

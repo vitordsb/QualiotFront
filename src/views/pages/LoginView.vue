@@ -10,23 +10,11 @@
           <form @submit.prevent="handleLogin">
             <div class="form-group">
               <label for="email">Email</label>
-              <input
-                type="email"
-                id="email"
-                v-model="email"
-                placeholder="Digite seu email"
-                required
-              />
+              <input type="email" id="email" v-model="email" placeholder="Digite seu email" required />
             </div>
             <div class="form-group">
               <label for="password">Senha</label>
-              <input
-                type="password"
-                id="password"
-                v-model="password"
-                placeholder="Digite sua senha"
-                required
-              />
+              <input type="password" id="password" v-model="password" placeholder="Digite sua senha" required />
             </div>
 
             <!-- Área dos botões com overlay -->
@@ -35,7 +23,6 @@
                 Entrar
               </button>
               <!-- Overlay para bloquear cliques enquanto isLoading -->
-              <div v-if="isLoading" class="overlay"></div>
             </div>
           </form>
           <p class="register-link">
@@ -44,6 +31,7 @@
           </p>
           <p :class="['message', messageType]" v-if="message">{{ message }}</p>
           <div v-if="isLoading" class="spinner"></div>
+        <div v-if="isLoading" class="overlay"></div>
         </div>
       </div>
     </div>
@@ -95,7 +83,7 @@ const handleLogin = async () => {
 
     localStorage.setItem("token", token);
     localStorage.setItem("name", name);
-
+    localStorage.setItem("email", email.value);
     console.log(data);
     setUser(name);
 
@@ -136,6 +124,7 @@ img {
     height: auto;
     flex-direction: column;
   }
+
   img {
     width: 250px;
   }
@@ -162,7 +151,8 @@ img {
 }
 
 .login-container {
-  box-shadow: 2px 4px 6px 2px rgba(0, 0, 0, 0.1);;
+  box-shadow: 2px 4px 6px 2px rgba(0, 0, 0, 0.1);
+  ;
   width: 100%;
   max-width: 600px;
   padding: 50px;
@@ -273,14 +263,17 @@ input[type="password"]:focus {
   .login-container {
     padding: 30px;
   }
+
   h2 {
     font-size: 28px;
   }
+
   input[type="email"],
   input[type="password"] {
     font-size: 16px;
     padding: 10px;
   }
+
   .login-button {
     font-size: 18px;
     padding: 10px;
@@ -301,6 +294,7 @@ input[type="password"]:focus {
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -316,7 +310,7 @@ input[type="password"]:focus {
 }
 
 /* Overlay que bloqueia os cliques enquanto isLoading */
-.overlay {
+/.overlay {
   position: absolute;
   top: 0;
   left: 0;
@@ -326,7 +320,7 @@ input[type="password"]:focus {
   z-index: 2;
 }
 
-/* Desabilitar o link com uma classe */
+* Desabilitar o link com uma classe */
 .forgot-password.disabled {
   pointer-events: none;
   opacity: 0.6;

@@ -35,13 +35,14 @@
                 required
               />
             </div>
-            <button type="submit" class="register-button">Registrar</button>
+           <button type="submit" class="register-button">Registrar</button>
+           <div v-if="isLoading" class="spinner"></div>
+           <div v-if="isLoading" class="overlay"></div>
           </form>
           <p class="login-link">
             Já tem uma conta? <RouterLink to="/">Faça login aqui</RouterLink>
           </p>
           <p :class="['message', messageType]" v-if="message">{{ message }}</p>
-          <div v-if="isLoading" class="spinner"></div>
         </div>
       </div>
       <div class="imageRegister">
@@ -78,7 +79,6 @@ const handleRegister = async () => {
         password: password.value,
       }),
     });
-    isLoading.value = false;
     const data = await response.json();
     console.log(data);
 
@@ -99,7 +99,6 @@ const handleRegister = async () => {
       router.push("/");
     }, 2000);
   } catch (error) {
-    isLoading.value = false;
     console.error("Erro ao registrar:", error);
     message.value = "Erro ao registrar. Verifique suas credenciais.";
     messageType.value = "error";
@@ -107,6 +106,9 @@ const handleRegister = async () => {
       message.value = "";
     }, 3000);
   }
+    finally {
+      isLoading.value = false;
+    }
 };
 </script>
 
@@ -298,5 +300,17 @@ input[type="password"]:focus {
   to {
     transform: rotate(360deg);
   }
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.6);
+  z-index: 2;
 }
 </style>
