@@ -25,7 +25,7 @@
           </div>
         </div>
       </div>
-      
+
       <div class="categories" v-if="relatorio && relatorio.categorys">
         <div class="category-item page-break" v-for="(cat, index) in relatorio.categorys" :key="index">
           <h3>{{ cat.name }}</h3>
@@ -37,11 +37,19 @@
               <p v-if="question.justication && question.justication.justification" class="justification-text">
                 Justificativa: {{ question.justication.justification }}
               </p>
+
+              <!-- Exibindo as tags -->
+              <p v-if="tagsRelatorio[qIndex]" class="tags-text">
+                <strong>Tags:</strong>
+                <span v-for="(tag, tagIndex) in tagsRelatorio[qIndex]" :key="tagIndex" class="tag-badge">
+                  {{ tag }}
+                </span>
+              </p>
             </div>
           </div>
         </div>
       </div>
-      
+
       <div class="export-btn-container">
         <button class="btn btn-export" @click="exportPDF">Exportar PDF</button>
       </div>
@@ -49,20 +57,40 @@
   </section>
 </template>
 
-
 <script setup>
 import { onMounted, ref, computed, defineProps } from 'vue';
 import html2pdf from 'html2pdf.js';
+
 const props = defineProps({
   tabIndex: {
     type: Number,
     required: true,
   }
 });
+
 const isLoading = ref(false);
+const tagsRelatorio = ref([]);
 const relatorio = ref(null);
 const reportSection = ref(null);
 
+// Função para recuperar as tags associadas à aba (tabIndex)
+const recuperarTags = (tabIndex) => {
+  const tagsSalvas = localStorage.getItem(`tags_tab_${tabIndex}`);
+  if (tagsSalvas) {
+    return JSON.parse(tagsSalvas);
+  } else {
+    return []; // Caso não tenha tags, retorna um array vazio
+  }
+};
+
+// Recupera as tags ao montar o componente
+onMounted(() => {
+  // Recupera as tags associadas à aba específica
+  tagsRelatorio.value = recuperarTags(props.tabIndex);
+  console.log("Tags para relatório:", tagsRelatorio.value);
+});
+
+// Função para chamar o relatório
 const chamarRelatorio = async () => {
   try {
     isLoading.value = true;
@@ -88,9 +116,6 @@ const chamarRelatorio = async () => {
     }
 
     relatorio.value = data.relatorio;
-    if (relatorio.value && relatorio.value.categorys) {
-      initializeCustomTags(relatorio.value.categorys.length);
-    }
   } catch (err) {
     console.error(err.message);
   } finally {
@@ -98,10 +123,12 @@ const chamarRelatorio = async () => {
   }
 };
 
-onMounted(async() => {
+// Chama o relatório ao montar o componente
+onMounted(async () => {
   await chamarRelatorio();
 });
 
+// Computed properties para o estilo do "Proficiency" (Proeficiência)
 const proficiencySectionStyle = computed(() => {
   if (!relatorio.value || !relatorio.value.proficiency) return {};
   const normalized = relatorio.value.proficiency.trim().toLowerCase();
@@ -126,6 +153,7 @@ const proficiencySectionStyle = computed(() => {
   }
   return {};
 });
+
 const proficiencyTextStyle = computed(() => {
   if (!relatorio.value || !relatorio.value.proficiency) return {};
   const normalized = relatorio.value.proficiency.trim().toLowerCase();
@@ -138,10 +166,12 @@ const proficiencyTextStyle = computed(() => {
   }
   return {};
 });
+
+// Função para exportar o relatório como PDF
 const exportPDF = () => {
   const element = reportSection.value;
   const opt = {
-    margin: [0, 0, 0, 0], 
+    margin: [0, 0, 0, 0],
     filename: 'QualiotReport.pdf',
     image: { type: 'jpeg', quality: 1 },
     html2canvas: { scale: 1 },
@@ -149,9 +179,9 @@ const exportPDF = () => {
       unit: 'in',
       format: 'letter',
       orientation: 'portrait',
-      compress: true, 
+      compress: true,
       putOnlyUsedFonts: true,
-      maxWidth: 600, 
+      maxWidth: 600,
     },
   };
   html2pdf().set(opt).from(element).save();
@@ -272,6 +302,21 @@ const exportPDF = () => {
   border-radius: 10px;
 }
 
+.tags-text {
+  margin-top: 10px;
+  font-size: 1rem;
+}
+
+.tag-badge {
+  background-color: #f0ad4e;
+  color: #ffffff;
+  font-weight: bolder;
+  padding: 4px 8px;
+  border-radius: 15px;
+  text-align: center;
+  font-size: 14px;
+}
+
 .export-btn-container {
   text-align: center;
   margin-top: 40px;
@@ -314,8 +359,13 @@ const exportPDF = () => {
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .page-break {

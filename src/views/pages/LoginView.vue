@@ -42,7 +42,7 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { RouterLink } from "vue-router";
-import { setUser } from "@/components/states/auth";
+import { setUser } from "../../components/states/auth";
 
 const isLoading = ref(false);
 const router = useRouter();
@@ -83,13 +83,12 @@ const handleLogin = async () => {
 
     localStorage.setItem("token", token);
     localStorage.setItem("name", name);
-    localStorage.setItem("email", email.value);
     console.log(data);
     setUser(name);
 
     message.value = "Login realizado com sucesso!";
     messageType.value = "success";
-    setTimeout(() => {
+        setTimeout(() => {
       router.push("/home");
       message.value = "";
     }, 1000);
@@ -310,7 +309,7 @@ input[type="password"]:focus {
 }
 
 /* Overlay que bloqueia os cliques enquanto isLoading */
-/.overlay {
+.overlay {
   position: absolute;
   top: 0;
   left: 0;
@@ -320,7 +319,6 @@ input[type="password"]:focus {
   z-index: 2;
 }
 
-* Desabilitar o link com uma classe */
 .forgot-password.disabled {
   pointer-events: none;
   opacity: 0.6;

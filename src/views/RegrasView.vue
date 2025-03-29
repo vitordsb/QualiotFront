@@ -41,6 +41,7 @@ watch(activeIndex, () => {
 });
 const removerTab = async () => {
   try {
+    isLoading.value = true;
     const token = localStorage.getItem("token");
     const abaSelecionada = tabs.value[activeIndex.value]?._id;
     if (!abaSelecionada) {
@@ -59,6 +60,7 @@ const removerTab = async () => {
     if (!response.ok) {
       throw new Error("Erro ao remover aba");
     }
+    isLoading.value = false;
     tabs.value.splice(activeIndex.value, 1);
     await listarTabs();
     alert("Aba removida, vá para outra aba");
@@ -66,6 +68,7 @@ const removerTab = async () => {
     console.log("Aba removida com sucesso");
   } catch (error) {
     console.error("Erro ao remover aba:", error);
+    isLoading.value = false;
   }
 };
 
@@ -79,8 +82,9 @@ const submitNewTab = async () => {
     alert("Insira o nome da nova categoria.");
     return;
   }
-  isLoading.value = true;
   try {
+    isLoading.value = true;
+    isAddTabModalOpen.value = false;
     const token = localStorage.getItem("token");
     const response = await fetch(
       `https://qualiotbackend.onrender.com/categorys/`,
@@ -118,7 +122,6 @@ const submitNewTab = async () => {
 
 const listarTabs = async () => {
   try {
-    isLoading.value = true;
     const token = localStorage.getItem("token");
     const productId = localStorage.getItem("produtoParaDarNota");
     const response = await fetch(
@@ -161,13 +164,15 @@ const listarTabs = async () => {
     }
   } catch (error) {
     console.error(error);
-  } finally {
-    isLoading.value = false;
   }
 };
 
 onMounted(() => {
+  isLoading.value = true;
   listarTabs();
+  setTimeout(() => {
+    isLoading.value = false;
+  }, 1000);
 });
 
 const setActiveTab = (index) => {
@@ -181,7 +186,8 @@ const setActiveTab = (index) => {
 
 <template>
   <section class="regras-view">
-    <div class="abas">
+    <div v-if="isLoading" class="spinner"></div>
+    <div v-else class="abas">
       <div class="tabs-container">
         <div
           v-for="(tab, index) in tabs"
@@ -206,7 +212,6 @@ const setActiveTab = (index) => {
         </div>
       </div>
       <div class="add">
-        <!-- Altera a chamada para abrir o modal -->
         <button @click="openAddTabModal" class="addAba">+</button>
         <p>New tab</p>
       </div>
@@ -411,6 +416,22 @@ const setActiveTab = (index) => {
     width: 35px;
     height: 35px;
     font-size: 18px;
+  }
+}
+.spinner {
+  width: 60px;
+  height: 60px;
+  border: 6px solid rgba(0, 123, 255, 0.3);
+  border-top: 6px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
 </style>

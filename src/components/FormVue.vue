@@ -71,7 +71,7 @@
           </div>
         </form>
       </div>
-      <div v-if="perguntas.length" class="botoes">
+      <div class="botoes">
         <div class="buttons">
           <button @click="openAddQuestionModal" class="btn btn-adicionar">
             Adicionar questão
@@ -84,7 +84,7 @@
           </button>
         </div>
         <div class="mediaCalculate">
-          <div class="title">
+            <div class="title">
             <h1>Média da categoria:</h1>
           </div>
           <div class="nota">
@@ -143,7 +143,7 @@ const props = defineProps({
 const justificativa = ref([]);
 const descricao = ref([]);
 const perguntas = ref([]);
-const isLoading = ref(true);
+const isLoading = ref(false);
 const notas = ref([]);
 const pesos = ref([]);
 const media = ref(0);
@@ -222,8 +222,9 @@ const submitNewQuestion = async () => {
     alert("Título e descrição são obrigatórios.");
     return;
   }
-  isLoading.value = true;
   try {
+    isLoading.value = true;
+    isAddQuestionModalOpen.value = false;
     const token = localStorage.getItem("token");
     const response = await fetch("https://qualiotbackend.onrender.com/questions", {
       method: "POST",
@@ -245,12 +246,12 @@ const submitNewQuestion = async () => {
     localStorage.setItem(`tags_question_${props.tabIndex}_${newIndex}`, JSON.stringify(newQuestionTags.value));
     tags.value[newIndex] = [...newQuestionTags.value];
     newQuestionTags.value = [];
-    isAddQuestionModalOpen.value = false;
+    setTimeout(() => {
+      isLoading.value = false;
+    }, 1000);
   } catch (error) {
     console.error("Erro ao cadastrar pergunta:", error);
     alert("Erro ao cadastrar pergunta. Tente novamente.");
-  } finally {
-    isLoading.value = false;
   }
 };
 
@@ -284,12 +285,13 @@ const removerPergunta = async (index) => {
     localStorage.setItem(`notas_tab_${props.tabIndex}`, JSON.stringify(notas.value));
     localStorage.setItem(`pesos_tab_${props.tabIndex}`, JSON.stringify(pesos.value));
     localStorage.setItem(`tags_tab_${props.tabIndex}`, JSON.stringify(tags.value));
-    await buscarPerguntas();
+    buscarPerguntas();
+    setTimeout(() => {
+      isLoading.value = false;
+    }, 1000);
   } catch (error) {
     console.error("Erro ao remover pergunta:", error);
     alert("Erro ao remover pergunta. Tente novamente.");
-  } finally {
-    isLoading.value = false;
   }
 };
 
@@ -352,15 +354,19 @@ const openEditTagsModal = (index) => {
 };
 
 const saveTags = () => {
+  isLoading.value = true;
   if (currentTagQuestionIndex.value !== null) {
     localStorage.setItem(
       `tags_question_${props.tabIndex}_${currentTagQuestionIndex.value}`,
       JSON.stringify(tags.value[currentTagQuestionIndex.value])
     );
+      console.log("Tags salvas", tags.value[currentTagQuestionIndex.value]);
     localStorage.setItem(`tags_tab_${props.tabIndex}`, JSON.stringify(tags.value));
+    console.log("Tags salvas", tags.value);
     isEditTagsModalOpen.value = false;
     currentTagQuestionIndex.value = null;
   }
+  isLoading.value = false;
 };
 
 const updateQuestionGrades = async () => {
@@ -388,6 +394,7 @@ const updateQuestionGrades = async () => {
 };
 
 const calcularMediaAba = async () => {
+  isLoading.value = true;
   let somaPesos = 0;
   let somaPonderada = 0;
   for (let i = 0; i < perguntas.value.length; i++) {
@@ -397,6 +404,9 @@ const calcularMediaAba = async () => {
     somaPonderada += notaAtual * peso;
     somaPesos += peso;
   }
+  setTimeout(() => {
+    isLoading.value = false;
+  }, 2000)
   media.value = Number((somaPesos > 0 ? somaPonderada / somaPesos : 0).toFixed(2));
   localStorage.setItem(`notas_tab_${props.tabIndex}`, JSON.stringify(notas.value));
   localStorage.setItem(`notaAba_tab_${props.tabIndex}`, media.value);
@@ -440,6 +450,7 @@ const buscarJustificativa = async () => {
 
 const enviarJustificativas = async () => {
   try {
+    isLoading.value = true;
     const token = localStorage.getItem("token");
     const storedPerguntasId = localStorage.getItem(`perguntasId_tab_${props.tabIndex}`);
     if (!storedPerguntasId) {
@@ -487,6 +498,8 @@ const enviarJustificativas = async () => {
     await buscarJustificativa();
   } catch (error) {
     console.error("Erro ao enviar justificativas:", error);
+  } finally {
+    isLoading.value = false;
   }
 };
 
