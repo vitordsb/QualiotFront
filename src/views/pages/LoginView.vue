@@ -316,7 +316,7 @@ input[type="password"]:focus {
   right: 0;
   bottom: 0;
   background: rgba(255, 255, 255, 0.6);
-  z-index: 2;
+  z-index: 1;
 }
 
 .forgot-password.disabled {

@@ -354,7 +354,6 @@ const openEditTagsModal = (index) => {
 };
 
 const saveTags = () => {
-  isLoading.value = true;
   if (currentTagQuestionIndex.value !== null) {
     localStorage.setItem(
       `tags_question_${props.tabIndex}_${currentTagQuestionIndex.value}`,
@@ -366,7 +365,6 @@ const saveTags = () => {
     isEditTagsModalOpen.value = false;
     currentTagQuestionIndex.value = null;
   }
-  isLoading.value = false;
 };
 
 const updateQuestionGrades = async () => {

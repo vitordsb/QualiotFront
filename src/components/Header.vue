@@ -73,6 +73,12 @@ const userName = computed(() => auth.userName);
 
 const temProduto = ref(false);
 
+onMounted(async() => {
+  setTimeout(async() => {
+   await verificarProdutos();
+  }, 1400)
+});
+
 async function verificarProdutos() {
   try {
     const token = localStorage.getItem('token');
@@ -96,11 +102,6 @@ async function verificarProdutos() {
   }
 }
 
-onMounted(() => {
-  setTimeout(() => {
-   verificarProdutos();
-  }, 1400)
-});
 
 watch(route, (newRoute) => {
   isLogin.value = newRoute.path === '/';
