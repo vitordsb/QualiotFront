@@ -501,7 +501,7 @@ const enviarJustificativas = async () => {
   }
 };
 
-onMounted(async () => {
+onMounted(() => {
   isLoading.value = true;
   setTimeout(async () => {
     try {

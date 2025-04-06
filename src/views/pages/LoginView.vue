@@ -22,7 +22,6 @@
               <button type="submit" class="login-button" :disabled="isLoading">
                 Entrar
               </button>
-              <!-- Overlay para bloquear cliques enquanto isLoading -->
             </div>
           </form>
           <p class="register-link">
@@ -31,8 +30,8 @@
           </p>
           <p :class="['message', messageType]" v-if="message">{{ message }}</p>
           <div v-if="isLoading" class="spinner"></div>
-        <div v-if="isLoading" class="overlay"></div>
         </div>
+          <div v-if="isLoading" class="overlay"></div>
       </div>
     </div>
   </Transition>
@@ -283,6 +282,7 @@ input[type="password"]:focus {
   margin: 10px auto;
   width: 50px;
   height: 50px;
+  z-index: 2;
   border: 5px solid #e1e4e8;
   border-top: 5px solid #348acf;
   border-radius: 50%;
@@ -298,8 +298,6 @@ input[type="password"]:focus {
     transform: rotate(360deg);
   }
 }
-
-/* Estilos para a área dos botões */
 .action-buttons {
   position: relative;
   display: flex;
@@ -308,7 +306,6 @@ input[type="password"]:focus {
   margin-top: 20px;
 }
 
-/* Overlay que bloqueia os cliques enquanto isLoading */
 .overlay {
   position: absolute;
   top: 0;
@@ -316,7 +313,7 @@ input[type="password"]:focus {
   right: 0;
   bottom: 0;
   background: rgba(255, 255, 255, 0.6);
-  z-index: 1;
+  z-index: 999;
 }
 
 .forgot-password.disabled {

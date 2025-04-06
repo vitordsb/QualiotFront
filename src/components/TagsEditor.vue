@@ -1,31 +1,16 @@
 <template>
   <div class="tags-editor">
     <div class="tags-list">
-      <span
-        v-for="(tag, index) in localTags"
-        :key="index"
-        class="tag-badge"
-      >
-        <span v-if="editIndex !== index" @dblclick="startEditing(index)">
+      <span v-for="(tag, index) in localTags" :key="index" class="tag-badge">
+        <span v-if="editIndex !== index" @click="startEditing(index)">
           {{ tag }}
         </span>
-        <input
-          v-else
-          v-model="editedTag"
-          @keyup.enter="saveEdit(index)"
-          @blur="saveEdit(index)"
-          class="edit-input"
-        />
-        <button class="remove-tag" @click="removeTag(index)">×</button>
+        <input v-else v-model="editedTag" @keyup.enter="saveEdit(index)" @blur="saveEdit(index)" class="edit-input" />
+        <button class="remove-tag" @click="removeTag(index)">X</button>
       </span>
     </div>
     <div class="add-tag">
-      <input
-        type="text"
-        v-model="newTag"
-        @keyup.enter="addTag"
-        placeholder="Adicionar tag"
-      />
+      <input type="text" v-model="newTag" @keyup.enter="addTag" placeholder="Adicionar tag"/>
       <button class="add-tag-button" @click="addTag">Adicionar</button>
     </div>
   </div>
@@ -45,9 +30,10 @@ const emit = defineEmits(["update:modelValue"]);
 const localTags = ref([...props.modelValue]);
 
 watch(() => props.modelValue, (newVal) => {
-  localTags.value = [...newVal];
+  if (JSON.stringify(newVal) !== JSON.stringify(localTags.value)) {
+    localTags.value = [...newVal];
+  }
 });
-
 watch(localTags, (newVal) => {
   emit("update:modelValue", newVal);
 }, { deep: true });

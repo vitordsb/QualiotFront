@@ -21,24 +21,24 @@ const router = createRouter({
         {
           path: "/home",
           name: "produtos",
-          component: () => import("../views/ProdutoView.vue"),
+          component: () => import("../views/pages/ProdutoView.vue"),
         },
         {
           path: "/regras",
           name: "regras",
-          component: () => import("../views/RegrasView.vue"),
+          component: () => import("../views/pages/RegrasView.vue"),
           meta: { requiresAuth: true, requiresProduct: true },
         },
         {
           path: "/relatorio",
           name: "relatorio",
-          component: () => import("../views/RelatorioView.vue"),
+          component: () => import("../views/pages/RelatorioView.vue"),
           meta: { requiresAuth: true, requiresProduct: true },
         },
         {
           path: "/cadastrados",
           name: "cadastrados",
-          component: () => import("../views/CadastradosView.vue"),
+          component: () => import("../views/pages/CadastradosView.vue"),
           meta: { requiresAuth: true, requiresProduct: true, isAdmin: true },
         },
       ],
@@ -55,7 +55,7 @@ router.beforeEach(async (to, from, next) => {
   }
   if (to.matched.some((record) => record.meta.isAdmin)) {
     const email = localStorage.getItem("email")
-    if (email !== "vitordsb2019@gmail.com") {
+    if (email === "vitordsb2019@gmail.com" ) {
       alert("Você não tem permissão para acessar esta rota.");
       return next({ name: "produtos" });
     }
